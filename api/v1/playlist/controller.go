@@ -142,13 +142,23 @@ func (controller *Controller) AddPlaylistMusic(c echo.Context) error {
 	}
 
 	data := strings.Split(c.Get("payload").(string), ":")
+	fmt.Println(data)
 
 	userId, err := strconv.Atoi(data[0])
 
 	if err != nil {
 		return err
 	}
-	err = controller.service.Remove(uint64(userId), uint64(id))
+
+	createPlaylistMusicRequest := new(request.CreatePlaylistMusicRequset)
+	if err := c.Bind(createPlaylistMusicRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	req := *createPlaylistMusicRequest.ToSpec(uint64(id))
+
+	err = controller.service.AddPlaylistMusic(uint64(userId), req)
+	fmt.Println(err)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}

@@ -5,6 +5,7 @@ import (
 	"mini-clean/entities"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type PostgresRepository struct {
@@ -41,7 +42,7 @@ func (repo *PostgresRepository) FindById(id uint64) (playlist *entities.Playlist
 		return nil, err
 	}
 
-	opr.First(&playlist, id)
+	opr.Preload("Musics").Preload("Users").First(&playlist, id)
 
 	opr.Commit()
 
@@ -61,7 +62,10 @@ func (repo *PostgresRepository) FindAll() (playlist []entities.Playlist, err err
 		return nil, err
 	}
 
-	opr.Find(&playlist)
+	err = opr.Preload("Musics").Preload("Users").Find(&playlist).Error
+	if err != nil {
+		return
+	}
 
 	opr.Commit()
 	return
@@ -80,7 +84,10 @@ func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (play
 		return playlist, err
 	}
 
-	opr.Where(key+" = ?", value).Find(&playlist)
+	err = opr.Preload("Musics").Preload("Users").Where(key+" = ?", value).Find(&playlist).Error
+	if err != nil {
+		return
+	}
 
 	opr.Commit()
 
@@ -101,7 +108,11 @@ func (repo *PostgresRepository) Insert(data entities.Playlist) (err error) {
 		return err
 	}
 
-	opr.Create(&data)
+	err = opr.Create(&data).Error
+
+	if err != nil {
+		return
+	}
 
 	opr.Commit()
 
@@ -136,7 +147,7 @@ func (repo *PostgresRepository) Update(data entities.Playlist) (playlist *entiti
 }
 
 func (repo *PostgresRepository) Delete(id uint64) (err error) {
-	err = repo.db.Where("id = ?", id).Delete(&entities.Playlist{}).Error
+	err = repo.db.Select(clause.Associations).Where("id = ?", id).Delete(&entities.Playlist{ID: id}).Error
 	return
 }
 
@@ -150,10 +161,14 @@ func (repo *PostgresRepository) AddPlaylistMusic(data entities.PlaylistMusic) (e
 	}()
 
 	if err = opr.Error; err != nil {
-		return err
+		return
 	}
 
-	opr.Create(&data)
+	err = opr.Create(&data).Error
+
+	if err != nil {
+		return
+	}
 
 	opr.Commit()
 
@@ -173,7 +188,11 @@ func (repo *PostgresRepository) FindPlaylistMusicById(playlistId uint64) (playli
 		return
 	}
 
-	opr.First(&playlistMusics, playlistId).Preload("musics")
+	err = opr.First(&playlistMusics, playlistId).Preload("Musics").Error
+
+	if err != nil {
+		return
+	}
 
 	opr.Commit()
 

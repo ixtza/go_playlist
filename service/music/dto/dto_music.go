@@ -20,7 +20,7 @@ type TrackList struct {
 
 type Body struct {
 	TrackList []TrackList `json:"track_list"`
-	Track MusixDTO `json:"track"`
+	Track     MusixDTO    `json:"track"`
 }
 
 type Message struct {

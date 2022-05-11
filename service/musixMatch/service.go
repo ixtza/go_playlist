@@ -2,11 +2,11 @@ package musixmatch
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"mini-clean/entities"
 	"mini-clean/service/music/dto"
 	"net/http"
 	"strconv"
-	"io/ioutil"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -47,8 +47,8 @@ func NewService(repository Repository, key string, url string) Service {
 func (s *service) GetById(id uint64) (music *entities.Music, err error) {
 	music, err = s.repository.FindById(id)
 	if music == nil || err != nil {
-		music, err = s.repository.FindByQuery("musix_id",id)
-		if music == nil || err != nil {
+		music, err = s.repository.FindByQuery("musix_id", id)
+		if music != nil {
 			return
 		}
 		request, err := http.NewRequest("GET", s.url+"/track.get?apikey="+s.key+"&track_id="+strconv.FormatUint(id, 10), nil)
@@ -62,23 +62,23 @@ func (s *service) GetById(id uint64) (music *entities.Music, err error) {
 		}
 		defer response.Body.Close()
 		var data dto.Musix
-		resBody,err := ioutil.ReadAll(response.Body)
-		// if err != nil {
-		// 	return 
-		// }
-		json.Unmarshal(resBody,&data)
+		resBody, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return nil, err
+		}
+		json.Unmarshal(resBody, &data)
 
 		musix := dto.MusixDTO{
-			MusixID:data.Message.Body.Track.MusixID,
-			Title:data.Message.Body.Track.Title,
-			Performer:data.Message.Body.Track.Performer,
-			AlbumTitle:data.Message.Body.Track.AlbumTitle,
+			MusixID:    data.Message.Body.Track.MusixID,
+			Title:      data.Message.Body.Track.Title,
+			Performer:  data.Message.Body.Track.Performer,
+			AlbumTitle: data.Message.Body.Track.AlbumTitle,
 		}
 		err = s.InsertMusix(musix)
 		if err != nil {
 			return nil, err
 		}
-		music, err = s.repository.FindByQuery("musix_id",data.Message.Body.Track.MusixID)
+		music, err = s.repository.FindByQuery("musix_id", data.Message.Body.Track.MusixID)
 	}
 	return music, err
 }
@@ -97,17 +97,17 @@ func (s *service) GetAll() (musics []entities.Music, err error) {
 		}
 		defer response.Body.Close()
 		var data dto.Musix
-		resBody,err := ioutil.ReadAll(response.Body)
+		resBody, err := ioutil.ReadAll(response.Body)
 		// if err != nil {
-		// 	return 
+		// 	return
 		// }
-		json.Unmarshal(resBody,&data)
-		for _, el := range data.Message.Body.TrackList{
+		json.Unmarshal(resBody, &data)
+		for _, el := range data.Message.Body.TrackList {
 			music := dto.MusixDTO{
-				MusixID:el.Track.MusixID,
-				Title:el.Track.Title,
-				Performer:el.Track.Performer,
-				AlbumTitle:el.Track.AlbumTitle,
+				MusixID:    el.Track.MusixID,
+				Title:      el.Track.Title,
+				Performer:  el.Track.Performer,
+				AlbumTitle: el.Track.AlbumTitle,
 			}
 			err = s.InsertMusix(music)
 			if err != nil {
