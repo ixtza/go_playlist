@@ -10,7 +10,7 @@ import (
 type Repository interface {
 	FindById(id uint64) (music *entities.Music, err error)
 	FindAll() (musics []entities.Music, err error)
-	FindByQuery(key string, value interface{}) (music entities.Music, err error)
+	FindByQuery(key string, value interface{}) (music *entities.Music, err error)
 	Insert(data entities.Music) (err error)
 	Update(data entities.Music) (music *entities.Music, err error)
 	Delete(id uint64) (err error)

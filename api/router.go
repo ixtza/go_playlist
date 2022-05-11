@@ -46,6 +46,7 @@ func RegistrationPath(e *echo.Echo, controller Controller) {
 
 	musicV1 := e.Group("/v1/musics")
 	musicV1.Use(controller.MiddlewareJwt.JwtMiddleware())
+	musicV1.GET("", controller.MusicV1Controller.GetAll)
 	musicV1.GET("/:id", controller.MusicV1Controller.GetByID)
 	musicV1.PUT("/:id", controller.MusicV1Controller.Modify)
 	musicV1.DELETE("/:id", controller.MusicV1Controller.Delete)

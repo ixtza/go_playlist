@@ -36,14 +36,14 @@ func (repo *PostgresRepository) FindById(id uint64) (music *entities.Music, err 
 		return nil, err
 	}
 
-	opr.First(&music, id)
+	err = opr.First(&music, id).Error
 
 	opr.Commit()
 
 	return
 }
 
-func (repo *PostgresRepository) FindAll() (users []entities.Music, err error) {
+func (repo *PostgresRepository) FindAll() (musics []entities.Music, err error) {
 	opr := repo.db.Begin()
 
 	defer func() {
@@ -56,13 +56,13 @@ func (repo *PostgresRepository) FindAll() (users []entities.Music, err error) {
 		return nil, err
 	}
 
-	opr.Find(&users)
+	err = opr.Find(&musics).Error
 
 	opr.Commit()
 	return
 }
 
-func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (music entities.Music, err error) {
+func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (music *entities.Music, err error) {
 	opr := repo.db.Begin()
 
 	defer func() {
@@ -75,7 +75,7 @@ func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (musi
 		return music, err
 	}
 
-	opr.Where(key+" = ?", value).Find(&music)
+	err = opr.Where(key+" = ?", value).Find(&music).Error
 
 	opr.Commit()
 
@@ -96,7 +96,7 @@ func (repo *PostgresRepository) Insert(data entities.Music) (err error) {
 		return err
 	}
 
-	opr.Create(&data)
+	err = opr.Create(&data).Error
 
 	opr.Commit()
 
@@ -121,9 +121,13 @@ func (repo *PostgresRepository) Update(data entities.Music) (music *entities.Mus
 		return nil, err
 	}
 
-	opr.First(&music, data.ID)
+	err = opr.First(&music, data.ID).Error
 
-	opr.Model(&music).Omit("ID").Updates(map[string]interface{}{"title": data.Title})
+	if err != nil {
+		return
+	}
+
+	err = opr.Model(&music).Omit("ID").Updates(map[string]interface{}{"title": data.Title}).Error
 
 	opr.Commit()
 

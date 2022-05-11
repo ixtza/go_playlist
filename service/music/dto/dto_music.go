@@ -13,3 +13,20 @@ type MusixDTO struct {
 	AlbumTitle string `json:"album_name"`
 	MusixID    uint64 `json:"track_id"`
 }
+
+type TrackList struct {
+	Track MusixDTO `json:"track"`
+}
+
+type Body struct {
+	TrackList []TrackList `json:"track_list"`
+	Track MusixDTO `json:"track"`
+}
+
+type Message struct {
+	Body Body `json:"body"`
+}
+
+type Musix struct {
+	Message Message `json:"message"`
+}

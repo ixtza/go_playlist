@@ -93,7 +93,7 @@ func (controller *Controller) Delete(c echo.Context) error {
 
 func (controller *Controller) GetAll(c echo.Context) error {
 	musics, err := controller.service.GetAll()
-	if err != nil {
+	if err != nil || len(musics) == 0 {
 		return c.JSON(http.StatusInternalServerError, "")
 	}
 	return c.JSON(http.StatusOK, musics)

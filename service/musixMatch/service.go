@@ -6,6 +6,7 @@ import (
 	"mini-clean/service/music/dto"
 	"net/http"
 	"strconv"
+	"io/ioutil"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -13,7 +14,7 @@ import (
 type Repository interface {
 	FindById(id uint64) (music *entities.Music, err error)
 	FindAll() (musics []entities.Music, err error)
-	FindByQuery(key string, value interface{}) (music entities.Music, err error)
+	FindByQuery(key string, value interface{}) (music *entities.Music, err error)
 	Insert(data entities.Music) (err error)
 	Update(data entities.Music) (music *entities.Music, err error)
 	Delete(id uint64) (err error)
@@ -44,10 +45,13 @@ func NewService(repository Repository, key string, url string) Service {
 }
 
 func (s *service) GetById(id uint64) (music *entities.Music, err error) {
-	result, err := s.repository.FindById(id)
-	if err != nil || result == nil {
-		data := dto.MusixDTO{}
-		request, err := http.NewRequest("POST", s.url+"/track.get?track_id="+strconv.FormatUint(id, 10), nil)
+	music, err = s.repository.FindById(id)
+	if music == nil || err != nil {
+		music, err = s.repository.FindByQuery("musix_id",id)
+		if music == nil || err != nil {
+			return
+		}
+		request, err := http.NewRequest("GET", s.url+"/track.get?apikey="+s.key+"&track_id="+strconv.FormatUint(id, 10), nil)
 		if err != nil {
 			return nil, err
 		}
@@ -57,23 +61,60 @@ func (s *service) GetById(id uint64) (music *entities.Music, err error) {
 			return nil, err
 		}
 		defer response.Body.Close()
-		err = json.NewDecoder(response.Body).Decode(&data)
-		if err != nil {
-			return nil, err
-		}
+		var data dto.Musix
+		resBody,err := ioutil.ReadAll(response.Body)
+		// if err != nil {
+		// 	return 
+		// }
+		json.Unmarshal(resBody,&data)
 
-		err = s.InsertMusix(data)
+		musix := dto.MusixDTO{
+			MusixID:data.Message.Body.Track.MusixID,
+			Title:data.Message.Body.Track.Title,
+			Performer:data.Message.Body.Track.Performer,
+			AlbumTitle:data.Message.Body.Track.AlbumTitle,
+		}
+		err = s.InsertMusix(musix)
 		if err != nil {
 			return nil, err
 		}
+		music, err = s.repository.FindByQuery("musix_id",data.Message.Body.Track.MusixID)
 	}
-	return result, err
+	return music, err
 }
 
 func (s *service) GetAll() (musics []entities.Music, err error) {
 	musics, err = s.repository.FindAll()
-	if err != nil {
-		return nil, err
+	if len(musics) == 0 || err != nil {
+		request, err := http.NewRequest("GET", s.url+"/track.search?apikey="+s.key+"&page_size=5&page=1&s_track_rating=desc", nil)
+		if err != nil {
+			return nil, err
+		}
+		var client = &http.Client{}
+		response, err := client.Do(request)
+		if err != nil {
+			return nil, err
+		}
+		defer response.Body.Close()
+		var data dto.Musix
+		resBody,err := ioutil.ReadAll(response.Body)
+		// if err != nil {
+		// 	return 
+		// }
+		json.Unmarshal(resBody,&data)
+		for _, el := range data.Message.Body.TrackList{
+			music := dto.MusixDTO{
+				MusixID:el.Track.MusixID,
+				Title:el.Track.Title,
+				Performer:el.Track.Performer,
+				AlbumTitle:el.Track.AlbumTitle,
+			}
+			err = s.InsertMusix(music)
+			if err != nil {
+				return nil, err
+			}
+		}
+		musics, err = s.repository.FindAll()
 	}
 	return musics, nil
 }
@@ -97,7 +138,7 @@ func (s *service) InsertMusix(dto dto.MusixDTO) (err error) {
 	}
 
 	newMusic := entities.ObjMusic(dto.Title, dto.Performer, dto.AlbumTitle)
-	newMusic.MusixID = dto.MusixID
+	newMusic.MusixID = uint64(dto.MusixID)
 
 	err = s.repository.Insert(*newMusic)
 	return err

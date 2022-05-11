@@ -16,7 +16,10 @@ import (
 
 	musicV1Controller "mini-clean/api/v1/music"
 	musicRepo "mini-clean/repository/music"
-	musicService "mini-clean/service/music"
+
+	// musicService "mini-clean/service/music"
+
+	musixMatchService "mini-clean/service/musixmatch"
 
 	collaborationV1Controller "mini-clean/api/v1/collaboration"
 	collaborationRepo "mini-clean/repository/collaboration"
@@ -31,13 +34,10 @@ func RegisterModules(dbCon *util.DatabaseConnection, config *config.AppConfig) a
 	userPermitService := userService.NewService(userPermitRepository)
 	userV1PermitController := userV1Controller.NewController(userPermitService)
 
-	// TODO :"Musixmatch service that accept AppConfig for tuning"
-
-	// musixMatchPermitService := musixMatchService.NewService(musicPermitRepository, config.OpenApi.MusixMatch)
-
 	musicPermitRepository := musicRepo.RepositoryFactory(dbCon)
-	musicPermitService := musicService.NewService(musicPermitRepository)
-	musicV1PermitController := musicV1Controller.NewController(musicPermitService)
+	musixMatchPermitService := musixMatchService.NewService(musicPermitRepository, config.OpenApi.MusixMatch, config.OpenApi.MusixMatchUrl)
+	// musicPermitService := musicService.NewService(musicPermitRepository)
+	musicV1PermitController := musicV1Controller.NewController(musixMatchPermitService)
 
 	playlistPermitRepository := playlistRepo.RepositoryFactory(dbCon)
 	playlistPermitService := playlistService.NewService(playlistPermitRepository)
