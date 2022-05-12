@@ -62,7 +62,7 @@ func (repo *PostgresRepository) FindAll() (playlist []entities.Playlist, err err
 		return nil, err
 	}
 
-	err = opr.Preload("Musics").Preload("Users").Find(&playlist).Error
+	err = opr.Preload("Musics").Find(&playlist).Error
 	if err != nil {
 		return
 	}
@@ -84,7 +84,7 @@ func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (play
 		return playlist, err
 	}
 
-	err = opr.Preload("Musics").Preload("Users").Where(key+" = ?", value).Find(&playlist).Error
+	err = opr.Preload("Musics").Where(key+" = ?", value).Find(&playlist).Error
 	if err != nil {
 		return
 	}
