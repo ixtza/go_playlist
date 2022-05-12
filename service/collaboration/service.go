@@ -11,6 +11,7 @@ type Repository interface {
 	// FindById(id uint64) (collaboration *entities.Collaboration, err error)
 	// FindAll() (collaborations []entities.Collaboration, err error)
 	// FindByQuery(key string, value interface{}) (collaboration entities.Collaboration, err error)
+	Exist(userId uint64, playlistId uint64) (collaboration *entities.Collaboration, err error)
 	Insert(data entities.Collaboration) (err error)
 	Delete(userId uint64, playlistId uint64) (err error)
 }

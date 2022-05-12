@@ -26,6 +26,26 @@ func NewPostgresRepository(db *gorm.DB) *PostgresRepository {
 	}
 }
 
+func (repo *PostgresRepository) Exist(userId uint64, playlistId uint64) (collaboration *entities.Collaboration, err error) {
+	opr := repo.db.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			opr.Rollback()
+		}
+	}()
+
+	if err = opr.Error; err != nil {
+		return nil, err
+	}
+
+	opr.Where("user_id = ?", userId).Where("playlist_id").Find(&collaboration)
+
+	opr.Commit()
+
+	return
+}
+
 func (repo *PostgresRepository) FindById(id uint64) (collaboration *entities.Collaboration, err error) {
 
 	opr := repo.db.Begin()
