@@ -45,10 +45,6 @@ func (controller *Controller) Modify(c echo.Context) error {
 	if err := c.Bind(createPlaylistRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	// cookie, err := c.Cookie("payload")
-	// if err != nil {
-	// 	return c.JSON(http.StatusInternalServerError, err.Error())
-	// }
 
 	data := strings.Split(c.Get("payload").(string), ":")
 

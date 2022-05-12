@@ -1,6 +1,7 @@
 package playlist
 
 import (
+	"errors"
 	"fmt"
 	"mini-clean/entities"
 
@@ -28,6 +29,36 @@ func NewPostgresRepository(db *gorm.DB) *PostgresRepository {
 	}
 }
 
+func (repo *PostgresRepository) Exist(id uint64) (playlist *entities.Playlist, err error) {
+	opr := repo.db.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			opr.Rollback()
+		}
+	}()
+
+	if err = opr.Error; err != nil {
+		return nil, err
+	}
+
+	err = opr.First(&playlist, id).Error
+
+	if gorm.ErrRecordNotFound == err {
+		err = errors.New("record not found")
+		return
+	}
+
+	if err != nil {
+		err = errors.New("internal server error")
+		return
+	}
+
+	opr.Commit()
+
+	return
+}
+
 func (repo *PostgresRepository) FindById(id uint64) (playlist *entities.Playlist, err error) {
 
 	opr := repo.db.Begin()
@@ -42,7 +73,19 @@ func (repo *PostgresRepository) FindById(id uint64) (playlist *entities.Playlist
 		return nil, err
 	}
 
-	opr.Preload("Musics").Preload("Users").First(&playlist, id)
+	err = opr.Debug().Preload("Users", func(tx *gorm.DB) *gorm.DB {
+		return tx.Select("id", "name", "email")
+	}).Preload("Musics").First(&playlist, id).Error
+
+	if gorm.ErrRecordNotFound == err {
+		err = errors.New("record not found")
+		return
+	}
+
+	if err != nil {
+		err = errors.New("internal server error")
+		return
+	}
 
 	opr.Commit()
 
@@ -64,6 +107,7 @@ func (repo *PostgresRepository) FindAll() (playlist []entities.Playlist, err err
 
 	err = opr.Preload("Musics").Find(&playlist).Error
 	if err != nil {
+		opr.Commit()
 		return
 	}
 
