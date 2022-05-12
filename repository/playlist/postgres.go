@@ -59,6 +59,38 @@ func (repo *PostgresRepository) Exist(id uint64) (playlist *entities.Playlist, e
 	return
 }
 
+func (repo *PostgresRepository) ExistCollab(userId uint64, playlistId uint64) (playlist *entities.Playlist, err error) {
+	opr := repo.db.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			opr.Rollback()
+		}
+	}()
+
+	if err = opr.Error; err != nil {
+		return nil, err
+	}
+
+	err = opr.Debug().Preload("Users", func(tx *gorm.DB) *gorm.DB {
+		return tx.Select("id")
+	}).Preload("Musics").First(&playlist, playlistId).Error
+
+	if gorm.ErrRecordNotFound == err {
+		err = errors.New("record not found")
+		return
+	}
+
+	if err != nil {
+		err = errors.New("internal server error")
+		return
+	}
+
+	opr.Commit()
+
+	return
+}
+
 func (repo *PostgresRepository) FindById(id uint64) (playlist *entities.Playlist, err error) {
 
 	opr := repo.db.Begin()

@@ -54,13 +54,11 @@ func (controller *Controller) Modify(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	res, _ := controller.service.Ownership(uint64(userId), uint64(id))
-	if !res {
-
+	err = controller.service.Ownership(uint64(userId), uint64(id))
+	if err != nil {
 		return c.JSON(http.StatusUnauthorized, "User unauthorized")
 	}
-	c.SetCookie(nil)
-	fmt.Println(c.Cookies())
+
 	req := *createPlaylistRequest.ToSpec(uint64(userId))
 	_, err = controller.service.Modify(uint64(id), req)
 	if err != nil {
@@ -110,8 +108,8 @@ func (controller *Controller) Delete(c echo.Context) error {
 		return err
 	}
 
-	res, _ := controller.service.Ownership(uint64(userId), uint64(id))
-	if !res {
+	err = controller.service.Ownership(uint64(userId), uint64(id))
+	if err != nil {
 		return c.JSON(http.StatusUnauthorized, "User unauthorized")
 	}
 
