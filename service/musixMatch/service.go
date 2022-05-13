@@ -1,10 +1,10 @@
-package musixmatch
+package musixMatch
 
 import (
 	"encoding/json"
 	"io/ioutil"
 	"mini-clean/entities"
-	"mini-clean/service/musixmatch/dto"
+	"mini-clean/service/musixMatch/dto"
 	"net/http"
 	"strconv"
 
