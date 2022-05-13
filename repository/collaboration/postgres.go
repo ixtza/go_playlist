@@ -127,7 +127,7 @@ func (repo *PostgresRepository) Insert(data entities.Collaboration) (err error) 
 	return
 }
 
-func (repo *PostgresRepository) Delete(userId uint64, collaborationId uint64) (err error) {
-	err = repo.db.Where("collaboration_id = ?", collaborationId).Where("user_id = ?", userId).Delete(&entities.Collaboration{}).Error
+func (repo *PostgresRepository) Delete(userId uint64, playlistId uint64) (err error) {
+	err = repo.db.Where("playlist_id = ?", playlistId).Where("user_id = ?", userId).Delete(&entities.Collaboration{}).Error
 	return
 }
