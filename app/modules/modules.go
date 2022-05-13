@@ -36,7 +36,6 @@ func RegisterModules(dbCon *util.DatabaseConnection, config *config.AppConfig) a
 
 	musicPermitRepository := musicRepo.RepositoryFactory(dbCon)
 	musixMatchPermitService := musixMatchService.NewService(musicPermitRepository, config.OpenApi.MusixMatch, config.OpenApi.MusixMatchUrl)
-	// musicPermitService := musicService.NewService(musicPermitRepository)
 	musicV1PermitController := musicV1Controller.NewController(musixMatchPermitService)
 
 	playlistPermitRepository := playlistRepo.RepositoryFactory(dbCon)

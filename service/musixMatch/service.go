@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"mini-clean/entities"
-	"mini-clean/service/music/dto"
+	"mini-clean/service/musixmatch/dto"
 	"net/http"
 	"strconv"
 
