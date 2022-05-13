@@ -2,7 +2,7 @@ package music
 
 import (
 	"mini-clean/api/v1/music/request"
-	musicUsecase "mini-clean/service/musixMatch"
+	musicUsecase "mini-clean/service/musixmatch"
 	"net/http"
 	"strconv"
 

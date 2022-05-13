@@ -1,10 +1,11 @@
-package musixMatch
+package musixmatch
 
 import (
 	"encoding/json"
 	"io/ioutil"
+	goplaylist "mini-clean"
 	"mini-clean/entities"
-	"mini-clean/service/musixMatch/dto"
+	"mini-clean/service/musixmatch/dto"
 	"net/http"
 	"strconv"
 
@@ -58,13 +59,13 @@ func (s *service) GetById(id uint64) (music *entities.Music, err error) {
 		var client = &http.Client{}
 		response, err := client.Do(request)
 		if err != nil {
-			return nil, err
+			return nil, goplaylist.ErrInternalServer
 		}
 		defer response.Body.Close()
 		var data dto.Musix
 		resBody, err := ioutil.ReadAll(response.Body)
 		if err != nil {
-			return nil, err
+			return nil, goplaylist.ErrInternalServer
 		}
 		json.Unmarshal(resBody, &data)
 
