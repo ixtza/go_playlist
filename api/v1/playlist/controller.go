@@ -136,7 +136,6 @@ func (controller *Controller) AddPlaylistMusic(c echo.Context) error {
 	}
 
 	data := strings.Split(c.Get("payload").(string), ":")
-	fmt.Println(data)
 
 	userId, err := strconv.Atoi(data[0])
 
@@ -179,7 +178,7 @@ func (controller *Controller) GetPlaylistMusicById(c echo.Context) error {
 		fmt.Println(err)
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, res.Musics)
 }
 
 func (controller *Controller) RemovePlaylistMusicById(c echo.Context) error {
@@ -196,7 +195,13 @@ func (controller *Controller) RemovePlaylistMusicById(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	err = controller.service.Remove(uint64(userId), uint64(id))
+
+	createPlaylistMusicRequest := new(request.CreatePlaylistMusicRequset)
+	if err := c.Bind(createPlaylistMusicRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	err = controller.service.RemovePlaylistMusicById(uint64(userId), createPlaylistMusicRequest.MusicID, uint64(id))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}

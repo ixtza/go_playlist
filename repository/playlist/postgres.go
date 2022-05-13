@@ -60,6 +60,7 @@ func (repo *PostgresRepository) Exist(id uint64) (playlist *entities.Playlist, e
 }
 
 func (repo *PostgresRepository) ExistCollab(userId uint64, playlistId uint64) (playlist *entities.Playlist, err error) {
+	fmt.Println(userId, playlistId)
 	opr := repo.db.Begin()
 
 	defer func() {
@@ -71,11 +72,9 @@ func (repo *PostgresRepository) ExistCollab(userId uint64, playlistId uint64) (p
 	if err = opr.Error; err != nil {
 		return nil, err
 	}
-
-	err = opr.Debug().Preload("Users", func(tx *gorm.DB) *gorm.DB {
-		return tx.Select("id")
-	}).Preload("Musics").First(&playlist, playlistId).Error
-
+	ent := &entities.Collaboration{}
+	err = opr.Debug().Where("playlist_id = ?", playlistId).First(ent, "user_id = ?", userId).Error
+	fmt.Println(err, ent)
 	if gorm.ErrRecordNotFound == err {
 		err = errors.New("record not found")
 		return
@@ -147,7 +146,7 @@ func (repo *PostgresRepository) FindAll() (playlist []entities.Playlist, err err
 	return
 }
 
-func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (playlist entities.Playlist, err error) {
+func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (playlist []entities.Playlist, err error) {
 	opr := repo.db.Begin()
 
 	defer func() {
@@ -160,8 +159,8 @@ func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (play
 		return playlist, err
 	}
 
-	err = opr.Preload("Musics").Where(key+" = ?", value).Find(&playlist).Error
-	if err != nil {
+	err = opr.Debug().Find(&playlist, key+" = ?", value).Error
+	if err != nil || len(playlist) == 0 {
 		return
 	}
 
@@ -240,7 +239,7 @@ func (repo *PostgresRepository) AddPlaylistMusic(data entities.PlaylistMusic) (e
 		return
 	}
 
-	err = opr.Create(&data).Error
+	err = opr.Debug().Create(&data).Error
 
 	if err != nil {
 		return
@@ -264,7 +263,7 @@ func (repo *PostgresRepository) FindPlaylistMusicById(playlistId uint64) (playli
 		return
 	}
 
-	err = opr.First(&playlistMusics, playlistId).Preload("Musics").Error
+	err = opr.Preload("Musics").First(&playlistMusics, playlistId).Error
 
 	if err != nil {
 		return
@@ -276,6 +275,6 @@ func (repo *PostgresRepository) FindPlaylistMusicById(playlistId uint64) (playli
 }
 
 func (repo *PostgresRepository) DeletePlaylistMusicById(musicId uint64, playlistId uint64) (err error) {
-	err = repo.db.Where("playlist_id = ?", playlistId).Where("music_id = ?", musicId).Delete(&entities.PlaylistMusic{}).Error
+	err = repo.db.Debug().Where("playlist_id = ?", playlistId).Where("music_id = ?", musicId).Delete(&entities.PlaylistMusic{}).Error
 	return
 }
