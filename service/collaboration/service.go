@@ -1,6 +1,7 @@
 package collaboration
 
 import (
+	goplaylist "mini-clean"
 	"mini-clean/entities"
 	"mini-clean/service/collaboration/dto"
 
@@ -51,13 +52,13 @@ func (s *service) Exist(userId uint64, playlistId uint64) (result bool, err erro
 	if err != nil {
 		return
 	}
-	return true, err
+	return true, nil
 }
 
 func (s *service) Create(dto dto.CollaborationDTO) (err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
-		return err
+		return goplaylist.ErrBadRequest
 	}
 
 	newCollaboration := entities.ObjCollaboration(dto.PlaylistID, dto.UserID)
@@ -71,5 +72,5 @@ func (s *service) Remove(userId uint64, playlistId uint64) (result bool, err err
 	if err != nil {
 		result = false
 	}
-	return
+	return true, nil
 }
