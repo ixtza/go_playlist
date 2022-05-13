@@ -8,10 +8,9 @@ import (
 )
 
 type Collaboration struct {
-	PlaylistID uint64 `gorm:"primaryKey"`
-	UserID     uint64 `gorm:"primaryKey"`
+	PlaylistID uint64 `gorm:"foreignKey"`
+	UserID     uint64 `gorm:"foreignKey"`
 	CreatedAt  time.Time
-	DeletedAt  gorm.DeletedAt
 }
 
 func (Collaboration) BeforeCreate(db *gorm.DB) (err error) {

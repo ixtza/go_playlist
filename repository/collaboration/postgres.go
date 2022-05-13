@@ -26,6 +26,26 @@ func NewPostgresRepository(db *gorm.DB) *PostgresRepository {
 	}
 }
 
+func (repo *PostgresRepository) Exist(userId uint64, playlistId uint64) (collaboration *entities.Collaboration, err error) {
+	opr := repo.db.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			opr.Rollback()
+		}
+	}()
+
+	if err = opr.Error; err != nil {
+		return nil, err
+	}
+
+	opr.Where("user_id = ?", userId).Where("playlist_id").Find(&collaboration)
+
+	opr.Commit()
+
+	return
+}
+
 func (repo *PostgresRepository) FindById(id uint64) (collaboration *entities.Collaboration, err error) {
 
 	opr := repo.db.Begin()
@@ -107,7 +127,7 @@ func (repo *PostgresRepository) Insert(data entities.Collaboration) (err error) 
 	return
 }
 
-func (repo *PostgresRepository) Delete(userId uint64, collaborationId uint64) (err error) {
-	err = repo.db.Where("collaboration_id = ?", collaborationId).Where("user_id = ?", userId).Delete(&entities.Collaboration{}).Error
+func (repo *PostgresRepository) Delete(userId uint64, playlistId uint64) (err error) {
+	err = repo.db.Where("playlist_id = ?", playlistId).Where("user_id = ?", userId).Delete(&entities.Collaboration{}).Error
 	return
 }

@@ -38,9 +38,8 @@ func (controller *Controller) Create(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-
-	res, err := controller.servicePlaylist.Ownership(uint64(ownerId), uint64(req.PlaylistID))
-	if !res {
+	err = controller.servicePlaylist.Ownership(uint64(ownerId), uint64(req.PlaylistID))
+	if err != nil {
 		return c.JSON(http.StatusUnauthorized, "User unauthorized")
 	}
 
@@ -69,12 +68,12 @@ func (controller *Controller) Remove(c echo.Context) error {
 		return err
 	}
 
-	res, err := controller.servicePlaylist.Ownership(uint64(ownerId), uint64(req.PlaylistID))
-	if !res {
+	err = controller.servicePlaylist.Ownership(uint64(ownerId), uint64(req.PlaylistID))
+	if err != nil {
 		return c.JSON(http.StatusUnauthorized, "User unauthorized")
 	}
 
-	res, err = controller.serviceCollab.Remove(uint64(req.UserID), uint64(req.PlaylistID))
+	res, err := controller.serviceCollab.Remove(uint64(req.UserID), uint64(req.PlaylistID))
 
 	if err != nil || res {
 		return c.JSON(http.StatusInternalServerError, err.Error())
