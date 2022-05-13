@@ -3,6 +3,7 @@ package playlist
 import (
 	"fmt"
 	"mini-clean/api/v1/playlist/request"
+	"mini-clean/api/v1/playlist/response"
 	playlistUsecase "mini-clean/service/playlist"
 	"net/http"
 	"strconv"
@@ -25,25 +26,36 @@ func (controller *Controller) GetByID(c echo.Context) error {
 	params := c.Param("id")
 	id, err := strconv.Atoi(params)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
 
 	playlist, err := controller.service.GetById(uint64(id))
 	if err != nil {
-		return err
+		return c.JSON(http.StatusOK, response.Response{
+			Message: err.Error(),
+		})
 	}
-	return c.JSON(http.StatusOK, playlist)
+	return c.JSON(http.StatusOK, response.ResponseSuccess{
+		Status: "success",
+		Data:   playlist,
+	})
 }
 
 func (controller *Controller) Modify(c echo.Context) error {
 	params := c.Param("id")
 	id, err := strconv.Atoi(params)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusOK, response.Response{
+			Message: err.Error(),
+		})
 	}
 	createPlaylistRequest := new(request.CreatePlaylistRequest)
 	if err := c.Bind(createPlaylistRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Message: err.Error(),
+		})
 	}
 
 	data := strings.Split(c.Get("payload").(string), ":")
@@ -51,21 +63,28 @@ func (controller *Controller) Modify(c echo.Context) error {
 	userId, err := strconv.Atoi(data[0])
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
 
 	err = controller.service.Ownership(uint64(userId), uint64(id))
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, "User unauthorized")
+		return c.JSON(http.StatusUnauthorized, response.Response{
+			Message: err.Error(),
+		})
 	}
 
 	req := *createPlaylistRequest.ToSpec(uint64(userId))
 	_, err = controller.service.Modify(uint64(id), req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
-
-	return c.JSON(http.StatusOK, "")
+	return c.JSON(http.StatusOK, response.Response{
+		Message: "success",
+	})
 }
 
 func (controller *Controller) Create(c echo.Context) error {
@@ -80,16 +99,22 @@ func (controller *Controller) Create(c echo.Context) error {
 
 	createPlaylistRequest := new(request.CreatePlaylistRequest)
 	if err := c.Bind(createPlaylistRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Message: err.Error(),
+		})
 	}
 
 	req := *createPlaylistRequest.ToSpec(uint64(userId))
 	err = controller.service.Create(req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
 
-	return c.JSON(http.StatusCreated, "")
+	return c.JSON(http.StatusCreated, response.Response{
+		Message: "success",
+	})
 }
 
 func (controller *Controller) Delete(c echo.Context) error {
@@ -97,7 +122,9 @@ func (controller *Controller) Delete(c echo.Context) error {
 	params := c.Param("id")
 	id, err := strconv.Atoi(params)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
 
 	data := strings.Split(c.Get("payload").(string), ":")
@@ -105,34 +132,49 @@ func (controller *Controller) Delete(c echo.Context) error {
 	userId, err := strconv.Atoi(data[0])
 
 	if err != nil {
-		return err
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
 
 	err = controller.service.Ownership(uint64(userId), uint64(id))
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, "User unauthorized")
+		return c.JSON(http.StatusUnauthorized, response.Response{
+			Message: err.Error(),
+		})
 	}
 
 	err = controller.service.Remove(uint64(userId), uint64(id))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
-	return c.JSON(http.StatusOK, "")
+	return c.JSON(http.StatusOK, response.Response{
+		Message: "success",
+	})
 }
 
 func (controller *Controller) GetAll(c echo.Context) error {
 	playlists, err := controller.service.GetAll()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, "")
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
-	return c.JSON(http.StatusOK, playlists)
+	return c.JSON(http.StatusOK, response.ResponseSuccess{
+		Status: "success",
+		Data:   playlists,
+	})
 }
 
 func (controller *Controller) AddPlaylistMusic(c echo.Context) error {
 	params := c.Param("id")
 	id, err := strconv.Atoi(params)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
 
 	data := strings.Split(c.Get("payload").(string), ":")
@@ -140,12 +182,16 @@ func (controller *Controller) AddPlaylistMusic(c echo.Context) error {
 	userId, err := strconv.Atoi(data[0])
 
 	if err != nil {
-		return err
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
 
 	createPlaylistMusicRequest := new(request.CreatePlaylistMusicRequset)
 	if err := c.Bind(createPlaylistMusicRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Message: err.Error(),
+		})
 	}
 
 	req := *createPlaylistMusicRequest.ToSpec(uint64(id))
@@ -153,17 +199,22 @@ func (controller *Controller) AddPlaylistMusic(c echo.Context) error {
 	err = controller.service.AddPlaylistMusic(uint64(userId), req)
 	fmt.Println(err)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
-	return c.JSON(http.StatusOK, "")
+	return c.JSON(http.StatusOK, response.Response{
+		Message: "success",
+	})
 }
 
 func (controller *Controller) GetPlaylistMusicById(c echo.Context) error {
 	params := c.Param("id")
 	id, err := strconv.Atoi(params)
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
 
 	data := strings.Split(c.Get("payload").(string), ":")
@@ -171,21 +222,30 @@ func (controller *Controller) GetPlaylistMusicById(c echo.Context) error {
 	userId, err := strconv.Atoi(data[0])
 
 	if err != nil {
-		return err
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
 	res, err := controller.service.GetPlaylistMusicById(uint64(userId), uint64(id))
 	if err != nil {
 		fmt.Println(err)
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
-	return c.JSON(http.StatusOK, res.Musics)
+	return c.JSON(http.StatusOK, response.ResponseSuccess{
+		Status: "success",
+		Data:   res.Musics,
+	})
 }
 
 func (controller *Controller) RemovePlaylistMusicById(c echo.Context) error {
 	params := c.Param("id")
 	id, err := strconv.Atoi(params)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
 
 	data := strings.Split(c.Get("payload").(string), ":")
@@ -193,17 +253,25 @@ func (controller *Controller) RemovePlaylistMusicById(c echo.Context) error {
 	userId, err := strconv.Atoi(data[0])
 
 	if err != nil {
-		return err
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
 
 	createPlaylistMusicRequest := new(request.CreatePlaylistMusicRequset)
 	if err := c.Bind(createPlaylistMusicRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Message: err.Error(),
+		})
 	}
 
 	err = controller.service.RemovePlaylistMusicById(uint64(userId), createPlaylistMusicRequest.MusicID, uint64(id))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Message: err.Error(),
+		})
 	}
-	return c.JSON(http.StatusOK, "")
+	return c.JSON(http.StatusOK, response.Response{
+		Message: "success",
+	})
 }
