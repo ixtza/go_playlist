@@ -8,10 +8,9 @@ import (
 )
 
 type PlaylistMusic struct {
-	MusicID    uint64 `gorm:"primaryKey"`
-	PlaylistID uint64 `gorm:"primaryKey"`
+	MusicID    uint64 `gorm:"foreignKey"`
+	PlaylistID uint64 `gorm:"foreignKey"`
 	CreatedAt  time.Time
-	DeletedAt  gorm.DeletedAt
 }
 
 func (PlaylistMusic) BeforeCreate(db *gorm.DB) (err error) {

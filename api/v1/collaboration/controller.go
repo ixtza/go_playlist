@@ -1,7 +1,9 @@
 package collaboration
 
 import (
+	v1 "mini-clean/api/v1"
 	"mini-clean/api/v1/collaboration/request"
+	"mini-clean/api/v1/collaboration/response"
 	collaborationUsecase "mini-clean/service/collaboration"
 	playlistUsecase "mini-clean/service/playlist"
 	"net/http"
@@ -26,7 +28,10 @@ func NewController(serviceCollab collaborationUsecase.Service, servicePlaylsit p
 func (controller *Controller) Create(c echo.Context) error {
 	createCollborationRequest := new(request.CreateCollborationRequest)
 	if err := c.Bind(createCollborationRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
 
 	req := *createCollborationRequest.ToSpec()
@@ -36,27 +41,42 @@ func (controller *Controller) Create(c echo.Context) error {
 	ownerId, err := strconv.Atoi(data[0])
 
 	if err != nil {
-		return err
+		return c.JSON(http.StatusInternalServerError, response.Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
+	err = controller.servicePlaylist.Ownership(uint64(ownerId), uint64(req.PlaylistID))
+	if err != nil {
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 
-	res, err := controller.servicePlaylist.Ownership(uint64(ownerId), uint64(req.PlaylistID))
-	if !res {
-		return c.JSON(http.StatusUnauthorized, "User unauthorized")
 	}
 
 	err = controller.serviceCollab.Create(req)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
 
-	return c.JSON(http.StatusCreated, "")
+	return c.JSON(http.StatusCreated, response.Response{
+		Status:  "success",
+		Message: "created",
+	})
 }
 
 func (controller *Controller) Remove(c echo.Context) error {
 	createCollborationRequest := new(request.CreateCollborationRequest)
 	if err := c.Bind(createCollborationRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
 
 	req := *createCollborationRequest.ToSpec()
@@ -66,19 +86,31 @@ func (controller *Controller) Remove(c echo.Context) error {
 	ownerId, err := strconv.Atoi(data[0])
 
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
 
-	res, err := controller.servicePlaylist.Ownership(uint64(ownerId), uint64(req.PlaylistID))
-	if !res {
-		return c.JSON(http.StatusUnauthorized, "User unauthorized")
+	err = controller.servicePlaylist.Ownership(uint64(ownerId), uint64(req.PlaylistID))
+	if err != nil {
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
 
-	res, err = controller.serviceCollab.Remove(uint64(req.UserID), uint64(req.PlaylistID))
+	res, err := controller.serviceCollab.Remove(uint64(req.UserID), uint64(req.PlaylistID))
 
 	if err != nil || res {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
 
-	return c.JSON(http.StatusOK, "")
+	return c.JSON(v1.GetErrorStatus(err), response.Response{
+		Status:  "success",
+		Message: err.Error(),
+	})
 }

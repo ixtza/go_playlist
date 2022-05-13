@@ -1,6 +1,7 @@
 package collaboration
 
 import (
+	goplaylist "mini-clean"
 	"mini-clean/entities"
 	"mini-clean/service/collaboration/dto"
 
@@ -11,6 +12,7 @@ type Repository interface {
 	// FindById(id uint64) (collaboration *entities.Collaboration, err error)
 	// FindAll() (collaborations []entities.Collaboration, err error)
 	// FindByQuery(key string, value interface{}) (collaboration entities.Collaboration, err error)
+	Exist(userId uint64, playlistId uint64) (collaboration *entities.Collaboration, err error)
 	Insert(data entities.Collaboration) (err error)
 	Delete(userId uint64, playlistId uint64) (err error)
 }
@@ -18,6 +20,7 @@ type Repository interface {
 type Service interface {
 	// GetById(id uint64) (collaboration *entities.Collaboration, err error)
 	// GetAll() (collaborations []entities.Collaboration, err error)
+	Exist(userId uint64, playlistId uint64) (result bool, err error)
 	Create(dto dto.CollaborationDTO) (err error)
 	Remove(userId uint64, playlistId uint64) (result bool, err error)
 }
@@ -44,10 +47,18 @@ func NewService(repository Repository) Service {
 // 	return
 // }
 
+func (s *service) Exist(userId uint64, playlistId uint64) (result bool, err error) {
+	_, err = s.repository.Exist(userId, playlistId)
+	if err != nil {
+		return
+	}
+	return true, nil
+}
+
 func (s *service) Create(dto dto.CollaborationDTO) (err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
-		return err
+		return goplaylist.ErrBadRequest
 	}
 
 	newCollaboration := entities.ObjCollaboration(dto.PlaylistID, dto.UserID)
@@ -61,5 +72,5 @@ func (s *service) Remove(userId uint64, playlistId uint64) (result bool, err err
 	if err != nil {
 		result = false
 	}
-	return
+	return true, nil
 }
