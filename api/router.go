@@ -54,7 +54,7 @@ func RegistrationPath(e *echo.Echo, controller Controller) {
 	collaborationV1 := e.Group("/v1/collaborations")
 	collaborationV1.Use(controller.MiddlewareJwt.JwtMiddleware())
 	collaborationV1.POST("", controller.CollabV1Controller.Create)
-	collaborationV1.DELETE("/:id", controller.CollabV1Controller.Remove)
+	collaborationV1.DELETE("", controller.CollabV1Controller.Remove)
 
 	// playlistMusicsV1 := e.Group("/v1/playlistmusics")
 	// playlistMusicsV1.Use(controller.MiddlewareJwt.JwtMiddleware())
