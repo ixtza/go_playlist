@@ -26,7 +26,7 @@ type Service interface {
 	GetAll() (musics []entities.Music, err error)
 	Create(dto dto.MusicDTO) (err error)
 	Modify(id uint64, dto dto.MusicDTO) (music *entities.Music, err error)
-	Remove(id uint64) (result bool, err error)
+	Remove(id uint64) (err error)
 }
 
 type service struct {
@@ -48,13 +48,16 @@ func NewService(repository Repository, key string, url string) Service {
 func (s *service) GetById(id uint64) (music *entities.Music, err error) {
 	music, err = s.repository.FindById(id)
 	if music == nil || err != nil {
+		if id < 1000000000 {
+			id += 1000000000
+		}
 		music, err = s.repository.FindByQuery("musix_id", id)
 		if music != nil {
 			return
 		}
 		request, err := http.NewRequest("GET", s.url+"/track.get?apikey="+s.key+"&track_id="+strconv.FormatUint(id, 10), nil)
 		if err != nil {
-			return nil, err
+			return nil, goplaylist.ErrInternalServer
 		}
 		var client = &http.Client{}
 		response, err := client.Do(request)
@@ -69,15 +72,15 @@ func (s *service) GetById(id uint64) (music *entities.Music, err error) {
 		}
 		json.Unmarshal(resBody, &data)
 
-		musix := dto.MusixDTO{
+		musix := dto.MusicDTO{
 			MusixID:    data.Message.Body.Track.MusixID,
 			Title:      data.Message.Body.Track.Title,
 			Performer:  data.Message.Body.Track.Performer,
 			AlbumTitle: data.Message.Body.Track.AlbumTitle,
 		}
-		err = s.InsertMusix(musix)
+		err = s.Create(musix)
 		if err != nil {
-			return nil, err
+			return nil, goplaylist.ErrInternalServer
 		}
 		music, err = s.repository.FindByQuery("musix_id", data.Message.Body.Track.MusixID)
 	}
@@ -87,32 +90,33 @@ func (s *service) GetById(id uint64) (music *entities.Music, err error) {
 func (s *service) GetAll() (musics []entities.Music, err error) {
 	musics, err = s.repository.FindAll()
 	if len(musics) == 0 || err != nil {
-		request, err := http.NewRequest("GET", s.url+"/track.search?apikey="+s.key+"&page_size=5&page=1&s_track_rating=desc", nil)
+		var request *http.Request
+		request, err = http.NewRequest("GET", s.url+"/track.search?apikey="+s.key+"&page_size=5&page=1&s_track_rating=desc", nil)
 		if err != nil {
-			return nil, err
+			return nil, goplaylist.ErrInternalServer
 		}
 		var client = &http.Client{}
-		response, err := client.Do(request)
-		if err != nil {
-			return nil, err
+		response, er := client.Do(request)
+		if er != nil {
+			return nil, goplaylist.ErrInternalServer
 		}
 		defer response.Body.Close()
 		var data dto.Musix
-		resBody, err := ioutil.ReadAll(response.Body)
-		// if err != nil {
-		// 	return
-		// }
+		resBody, er := ioutil.ReadAll(response.Body)
+		if er != nil {
+			return nil, goplaylist.ErrInternalServer
+		}
 		json.Unmarshal(resBody, &data)
 		for _, el := range data.Message.Body.TrackList {
-			music := dto.MusixDTO{
+			music := dto.MusicDTO{
 				MusixID:    el.Track.MusixID,
 				Title:      el.Track.Title,
 				Performer:  el.Track.Performer,
 				AlbumTitle: el.Track.AlbumTitle,
 			}
-			err = s.InsertMusix(music)
+			err = s.Create(music)
 			if err != nil {
-				return nil, err
+				return nil, goplaylist.ErrInternalServer
 			}
 		}
 		musics, err = s.repository.FindAll()
@@ -123,7 +127,7 @@ func (s *service) GetAll() (musics []entities.Music, err error) {
 func (s *service) Create(dto dto.MusicDTO) (err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
-		return err
+		return goplaylist.ErrBadRequest
 	}
 
 	newMusic := entities.ObjMusic(dto.Title, dto.Performer, dto.AlbumTitle)
@@ -132,27 +136,27 @@ func (s *service) Create(dto dto.MusicDTO) (err error) {
 	return err
 }
 
-func (s *service) InsertMusix(dto dto.MusixDTO) (err error) {
-	err = s.validate.Struct(dto)
-	if err != nil {
-		return err
-	}
+// func (s *service) InsertMusix(dto dto.MusixDTO) (err error) {
+// 	err = s.validate.Struct(dto)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	newMusic := entities.ObjMusic(dto.Title, dto.Performer, dto.AlbumTitle)
-	newMusic.MusixID = uint64(dto.MusixID)
+// 	newMusic := entities.ObjMusic(dto.Title, dto.Performer, dto.AlbumTitle)
+// 	newMusic.MusixID = uint64(dto.MusixID)
 
-	err = s.repository.Insert(*newMusic)
-	return err
-}
+// 	err = s.repository.Insert(*newMusic)
+// 	return err
+// }
 
 func (s *service) Modify(id uint64, dto dto.MusicDTO) (music *entities.Music, err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
-		return nil, err
+		return nil, goplaylist.ErrBadRequest
 	}
 	music, err = s.repository.FindById(id)
 	if err != nil {
-		return nil, err
+		return nil, goplaylist.ErrNotFound
 	}
 
 	music.Title = dto.Title
@@ -160,15 +164,15 @@ func (s *service) Modify(id uint64, dto dto.MusicDTO) (music *entities.Music, er
 
 	music, err = s.repository.Update(*music)
 	if err != nil {
-		return nil, err
+		return nil, goplaylist.ErrInternalServer
 	}
 	return music, nil
 }
 
-func (s *service) Remove(id uint64) (result bool, err error) {
+func (s *service) Remove(id uint64) (err error) {
 	err = s.repository.Delete(id)
 	if err != nil {
-		result = false
+		return
 	}
 	return
 }

@@ -59,7 +59,7 @@ func (repo *PostgresRepository) FindAll() (musics []entities.Music, err error) {
 	}()
 
 	if err = opr.Error; err != nil {
-		return nil, err
+		return nil, goplaylist.ErrInternalServer
 	}
 
 	err = opr.Find(&musics).Error
