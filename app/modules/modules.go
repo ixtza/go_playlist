@@ -19,7 +19,7 @@ import (
 
 	// musicService "mini-clean/service/music"
 
-	musixMatchService "mini-clean/service/musixmatch"
+	musixMatchService "mini-clean/service/musixMatch"
 
 	collaborationV1Controller "mini-clean/api/v1/collaboration"
 	collaborationRepo "mini-clean/repository/collaboration"
@@ -36,7 +36,6 @@ func RegisterModules(dbCon *util.DatabaseConnection, config *config.AppConfig) a
 
 	musicPermitRepository := musicRepo.RepositoryFactory(dbCon)
 	musixMatchPermitService := musixMatchService.NewService(musicPermitRepository, config.OpenApi.MusixMatch, config.OpenApi.MusixMatchUrl)
-	// musicPermitService := musicService.NewService(musicPermitRepository)
 	musicV1PermitController := musicV1Controller.NewController(musixMatchPermitService)
 
 	playlistPermitRepository := playlistRepo.RepositoryFactory(dbCon)
