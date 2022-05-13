@@ -1,6 +1,6 @@
 package request
 
-import "mini-clean/service/music/dto"
+import "mini-clean/service/musixMatch/dto"
 
 type CreateMusicRequest struct {
 	Title      string `json:"title"`
