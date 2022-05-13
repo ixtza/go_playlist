@@ -19,7 +19,7 @@ import (
 
 	// musicService "mini-clean/service/music"
 
-	musixMatchService "mini-clean/service/musixMatch"
+	musixMatchService "mini-clean/service/musixmatch"
 
 	collaborationV1Controller "mini-clean/api/v1/collaboration"
 	collaborationRepo "mini-clean/repository/collaboration"
