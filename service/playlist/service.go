@@ -5,11 +5,12 @@ import (
 	"mini-clean/entities"
 	"mini-clean/service/playlist/dto"
 
+	goplaylist "mini-clean"
+
 	"github.com/go-playground/validator/v10"
 )
 
 type Repository interface {
-	Exist(id uint64) (playlist *entities.Playlist, err error)
 	ExistCollab(userId uint64, playlistId uint64) (playlist *entities.Playlist, err error)
 	FindById(id uint64) (playlist *entities.Playlist, err error)
 	FindAll() (playlists []entities.Playlist, err error)
@@ -49,8 +50,8 @@ func NewService(repository Repository) Service {
 
 func (s *service) Ownership(userId uint64, playlistId uint64) (err error) {
 	_, err = s.repository.FindByQuery("owner", userId)
-	// internal server error / error not found
 	if err != nil {
+		err = goplaylist.ErrUnauthorized
 		return
 	}
 	return
@@ -59,6 +60,7 @@ func (s *service) Ownership(userId uint64, playlistId uint64) (err error) {
 func (s *service) Access(userId uint64, playlistId uint64) (err error) {
 	_, err = s.repository.ExistCollab(userId, playlistId)
 	if err != nil {
+		err = goplaylist.ErrUnauthorized
 		return
 	}
 	return
@@ -67,12 +69,18 @@ func (s *service) Access(userId uint64, playlistId uint64) (err error) {
 func (s *service) GetById(id uint64) (playlist *entities.Playlist, err error) {
 	playlist, err = s.repository.FindById(id)
 	// internal server error / error not found
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 
 func (s *service) GetAll() (playlists []entities.Playlist, err error) {
 	playlists, err = s.repository.FindAll()
 	// internal server error / error not found
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 
@@ -80,7 +88,7 @@ func (s *service) Create(dto dto.PlaylistDTO) (err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
 		// bad request
-		return err
+		return goplaylist.ErrBadRequest
 	}
 
 	newPlaylist := entities.ObjPlaylist(dto.Name, dto.Owner)
@@ -94,7 +102,7 @@ func (s *service) Modify(id uint64, dto dto.PlaylistDTO) (playlist *entities.Pla
 	err = s.validate.Struct(dto)
 	if err != nil {
 		// bad request
-		return nil, err
+		return nil, goplaylist.ErrBadRequest
 	}
 	playlist, err = s.repository.FindById(id)
 	// internal server error / error not found
@@ -123,6 +131,11 @@ func (s *service) Remove(userId uint64, playlistId uint64) (err error) {
 }
 
 func (s *service) AddPlaylistMusic(userId uint64, dto dto.PlaylistMusicDTO) (err error) {
+	err = s.validate.Struct(dto)
+	if err != nil {
+		// bad request
+		return goplaylist.ErrBadRequest
+	}
 	err = s.Access(userId, dto.PlaylistID)
 	if err != nil {
 		err = s.Ownership(userId, dto.PlaylistID)
