@@ -1,7 +1,6 @@
 package music
 
 import (
-	"fmt"
 	goplaylist "mini-clean"
 	"mini-clean/entities"
 
@@ -120,7 +119,6 @@ func (repo *PostgresRepository) Insert(data entities.Music) (id uint64, err erro
 }
 
 func (repo *PostgresRepository) Update(data entities.Music) (music *entities.Music, err error) {
-	fmt.Println(data)
 	opr := repo.db.Begin()
 
 	defer func() {

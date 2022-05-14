@@ -1,7 +1,6 @@
 package playlist
 
 import (
-	"fmt"
 	goplaylist "mini-clean"
 	"mini-clean/entities"
 
@@ -30,7 +29,6 @@ func NewPostgresRepository(db *gorm.DB) *PostgresRepository {
 }
 
 func (repo *PostgresRepository) ExistCollab(userId uint64, playlistId uint64) (playlist *entities.Playlist, err error) {
-	fmt.Println(userId, playlistId)
 	opr := repo.db.Begin()
 
 	defer func() {
@@ -44,7 +42,6 @@ func (repo *PostgresRepository) ExistCollab(userId uint64, playlistId uint64) (p
 	}
 	ent := &entities.Collaboration{}
 	err = opr.Debug().Where("playlist_id = ?", playlistId).First(ent, "user_id = ?", userId).Error
-	fmt.Println(err, ent)
 	if err != nil {
 		err = goplaylist.ErrNotFound
 		return

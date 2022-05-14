@@ -1,7 +1,6 @@
 package user
 
 import (
-	"fmt"
 	goplaylist "mini-clean"
 	"mini-clean/entities"
 	"mini-clean/service/user/dto"
@@ -72,8 +71,6 @@ func (s *service) Modify(dto dto.UserDTO) (user *entities.User, err error) {
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(user)
 
 	user.Name = dto.Name
 	user.Password = dto.Password
