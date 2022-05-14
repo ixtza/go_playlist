@@ -67,7 +67,7 @@ func (s *service) Access(userId uint64, playlistId uint64) (err error) {
 
 func (s *service) GetById(id uint64) (playlist *entities.Playlist, err error) {
 	playlist, err = s.repository.FindById(id)
-	// internal server error / error not found
+
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (s *service) GetById(id uint64) (playlist *entities.Playlist, err error) {
 
 func (s *service) GetAll() (playlists []entities.Playlist, err error) {
 	playlists, err = s.repository.FindAll()
-	// internal server error / error not found
+
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (s *service) GetAll() (playlists []entities.Playlist, err error) {
 func (s *service) Create(dto dto.PlaylistDTO) (id uint64, err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
-		// bad request
+
 		err = goplaylist.ErrBadRequest
 		return
 	}
@@ -94,18 +94,18 @@ func (s *service) Create(dto dto.PlaylistDTO) (id uint64, err error) {
 	newPlaylist := entities.ObjPlaylist(dto.Name, dto.Owner)
 
 	id, err = s.repository.Insert(*newPlaylist)
-	// internal server error
+
 	return
 }
 
 func (s *service) Modify(id uint64, dto dto.PlaylistDTO) (playlist *entities.Playlist, err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
-		// bad request
+
 		return nil, goplaylist.ErrBadRequest
 	}
 	playlist, err = s.repository.FindById(id)
-	// internal server error / error not found
+
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (s *service) Modify(id uint64, dto dto.PlaylistDTO) (playlist *entities.Pla
 
 	playlist, err = s.repository.Update(*playlist)
 	if err != nil {
-		// internal server error / error not found
+
 		return nil, err
 	}
 	return playlist, nil
@@ -122,7 +122,7 @@ func (s *service) Modify(id uint64, dto dto.PlaylistDTO) (playlist *entities.Pla
 
 func (s *service) Remove(userId uint64, playlistId uint64) (err error) {
 	err = s.Ownership(userId, playlistId)
-	// error unauthorized
+
 	if err != nil {
 		return
 	}
@@ -133,19 +133,19 @@ func (s *service) Remove(userId uint64, playlistId uint64) (err error) {
 func (s *service) AddPlaylistMusic(userId uint64, dto dto.PlaylistMusicDTO) (err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
-		// bad request
+
 		return goplaylist.ErrBadRequest
 	}
 	err = s.Access(userId, dto.PlaylistID)
 	if err != nil {
 		err = s.Ownership(userId, dto.PlaylistID)
-		// error unauthorized / error not found
+
 		if err != nil {
 			return
 		}
 		newPlaylistMusic := entities.ObjPlaylistMusics(dto.MusicID, dto.PlaylistID)
 		err = s.repository.AddPlaylistMusic(*newPlaylistMusic)
-		// internal server error / error not found
+
 		if err != nil {
 			return
 		}
@@ -153,7 +153,7 @@ func (s *service) AddPlaylistMusic(userId uint64, dto dto.PlaylistMusicDTO) (err
 	}
 	newPlaylistMusic := entities.ObjPlaylistMusics(dto.MusicID, dto.PlaylistID)
 	err = s.repository.AddPlaylistMusic(*newPlaylistMusic)
-	// internal server error / error not found
+
 	if err != nil {
 		return
 	}
@@ -162,7 +162,7 @@ func (s *service) AddPlaylistMusic(userId uint64, dto dto.PlaylistMusicDTO) (err
 
 func (s *service) GetPlaylistMusicById(userId uint64, playlistId uint64) (playlist entities.Playlist, err error) {
 	playlist, err = s.repository.FindPlaylistMusicById(playlistId)
-	// internal server error / error not found
+
 	if err != nil {
 		return
 	}
@@ -174,19 +174,19 @@ func (s *service) RemovePlaylistMusicById(userId uint64, musicId uint64, playlis
 
 	if err != nil {
 		err = s.Ownership(userId, playlistId)
-		// error unauthorized / error not found
+
 		if err != nil {
 			return
 		}
 		err = s.repository.DeletePlaylistMusicById(musicId, playlistId)
-		// internal server error / error not found
+
 		if err != nil {
 			return
 		}
 		return
 	}
 	err = s.repository.DeletePlaylistMusicById(musicId, playlistId)
-	// internal server error / error not found
+
 	if err != nil {
 		return
 	}

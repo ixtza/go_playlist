@@ -145,7 +145,6 @@ func (repo *PostgresRepository) Insert(data entities.Playlist) (id uint64, err e
 	err = opr.Create(&data).Error
 
 	if err != nil {
-		// internal server error
 		err = goplaylist.ErrInternalServer
 		return
 	}
@@ -176,7 +175,6 @@ func (repo *PostgresRepository) Update(data entities.Playlist) (playlist *entiti
 	}
 	opr.Model(&playlist).Omit("ID", "email").Updates(map[string]interface{}{"name": data.Name})
 	if err != nil {
-		// internal server error
 		err = goplaylist.ErrInternalServer
 		return
 	}

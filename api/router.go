@@ -55,7 +55,4 @@ func RegistrationPath(e *echo.Echo, controller Controller) {
 	collaborationV1.Use(controller.MiddlewareJwt.JwtMiddleware())
 	collaborationV1.POST("", controller.CollabV1Controller.Create)
 	collaborationV1.DELETE("", controller.CollabV1Controller.Remove)
-	// admin := e.Group("/v1/admin")
-	// admin.Use(controller.MiddlewareJwt.JwtAdminMiddleware())
-	// admin := e.GET("/users", controller.UserV1Controller.GetAll)
 }

@@ -39,7 +39,7 @@ func (controller *Controller) Auth(c echo.Context) error {
 			Message: err.Error(),
 		})
 	}
-	// TODO: ganti status jadi accepted, data token tidak usah ditaruh kedalam interface
+
 	return c.JSON(v1.GetErrorStatus(err), response.ResponseSuccess{
 		Status: "success",
 		Data:   token,

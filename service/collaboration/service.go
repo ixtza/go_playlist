@@ -9,17 +9,12 @@ import (
 )
 
 type Repository interface {
-	// FindById(id uint64) (collaboration *entities.Collaboration, err error)
-	// FindAll() (collaborations []entities.Collaboration, err error)
-	// FindByQuery(key string, value interface{}) (collaboration entities.Collaboration, err error)
 	Exist(userId uint64, playlistId uint64) (collaboration *entities.Collaboration, err error)
 	Insert(data entities.Collaboration) (err error)
 	Delete(userId uint64, playlistId uint64) (err error)
 }
 
 type Service interface {
-	// GetById(id uint64) (collaboration *entities.Collaboration, err error)
-	// GetAll() (collaborations []entities.Collaboration, err error)
 	Exist(userId uint64, playlistId uint64) (result bool, err error)
 	Create(dto dto.CollaborationDTO) (err error)
 	Remove(userId uint64, playlistId uint64) (err error)
@@ -36,16 +31,6 @@ func NewService(repository Repository) Service {
 		validate:   validator.New(),
 	}
 }
-
-// func (s *service) GetById(id uint64) (collaboration *entities.Collaboration, err error) {
-// 	collaboration, err = s.repository.FindById(id)
-// 	return
-// }
-
-// func (s *service) GetAll() (collaborations []entities.Collaboration, err error) {
-// 	collaborations, err = s.repository.FindAll()
-// 	return
-// }
 
 func (s *service) Exist(userId uint64, playlistId uint64) (result bool, err error) {
 	_, err = s.repository.Exist(userId, playlistId)
