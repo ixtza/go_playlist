@@ -1,8 +1,9 @@
 package user
 
 import (
-	"errors"
+	v1 "mini-clean/api/v1"
 	"mini-clean/api/v1/user/request"
+	"mini-clean/api/v1/user/response"
 	userUsecase "mini-clean/service/user"
 	"net/http"
 	"strconv"
@@ -29,10 +30,16 @@ func (controller *Controller) GetByID(c echo.Context) error {
 	}
 	user, err := controller.service.GetById(uint64(id))
 	if err != nil {
-		return err
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
-	return c.JSON(http.StatusOK, user)
+	return c.JSON(v1.GetErrorStatus(err), response.ResponseSuccess{
+		Status: "success",
+		Data:   user,
+	})
 }
 
 func (controller *Controller) Modify(c echo.Context) error {
@@ -44,16 +51,25 @@ func (controller *Controller) Modify(c echo.Context) error {
 	data := strings.Split(c.Get("payload").(string), ":")
 
 	if data[1] != createUserRequest.Email {
-		return errors.New("invalid username or password")
+		return c.JSON(http.StatusUnauthorized, response.Response{
+			Status:  "fail",
+			Message: "invalid username or password",
+		})
 	}
 
 	req := *createUserRequest.ToSpec()
 	_, err := controller.service.Modify(req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
-	return c.JSON(http.StatusOK, "")
+	return c.JSON(v1.GetErrorStatus(err), response.Response{
+		Status:  "success",
+		Message: "user data updated",
+	})
 }
 
 func (controller *Controller) GetAll(c echo.Context) error {
@@ -61,10 +77,16 @@ func (controller *Controller) GetAll(c echo.Context) error {
 	users, err := controller.service.GetAll()
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
-	return c.JSON(http.StatusOK, users)
+	return c.JSON(v1.GetErrorStatus(err), response.ResponseSuccess{
+		Status: "success",
+		Data:   users,
+	})
 }
 
 func (controller *Controller) Create(c echo.Context) error {
@@ -77,12 +99,18 @@ func (controller *Controller) Create(c echo.Context) error {
 
 	err := controller.service.Create(req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
-	return c.JSON(http.StatusCreated, "")
+	return c.JSON(http.StatusCreated, response.Response{
+		Status:  "success",
+		Message: "user created",
+	})
 }
 
-func (controller *Controller) Delete(c echo.Context) error {
-	return errors.New("some error")
-}
+// func (controller *Controller) Delete(c echo.Context) error {
+// 	return errors.New("some error")
+// }

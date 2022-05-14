@@ -17,7 +17,6 @@ type Repository interface {
 }
 
 type Service interface {
-	Login(dto dto.UserLoginDTO) (id int)
 	GetById(id uint64) (user *entities.User, err error)
 	GetAll() (users []entities.User, err error)
 	Create(dto dto.UserDTO) (err error)
@@ -34,23 +33,6 @@ func NewService(repository Repository) Service {
 		repository: repository,
 		validate:   validator.New(),
 	}
-}
-
-func (s *service) Login(dto dto.UserLoginDTO) (id int) {
-	err := s.validate.Struct(dto)
-	if err != nil {
-		return -1
-	}
-	user := new(entities.User)
-
-	user, err = s.repository.FindByQuery("email", dto.Email)
-	if err != nil {
-		return -2
-	}
-	if user.Password != dto.Password {
-		return -3
-	}
-	return int(user.ID)
 }
 
 func (s *service) GetById(id uint64) (user *entities.User, err error) {
