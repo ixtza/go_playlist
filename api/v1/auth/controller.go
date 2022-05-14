@@ -41,7 +41,7 @@ func (controller *Controller) Auth(c echo.Context) error {
 	}
 
 	return c.JSON(v1.GetErrorStatus(err), response.ResponseSuccess{
-		Status: "fail",
+		Status: "success",
 		Data:   map[string]interface{}{"token": token},
 	})
 }

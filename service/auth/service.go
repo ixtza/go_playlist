@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"mini-clean/config"
 	"mini-clean/entities"
 	"mini-clean/service/auth/dto"
@@ -44,6 +45,7 @@ func (s *service) Login(input dto.InputLogin) (auth *entities.Auth, err error) {
 	}
 
 	excepctedPassword := data.Password
+	fmt.Println(input, data)
 	if excepctedPassword != input.Password {
 		return nil, errors.New("invalid username or password")
 	}
