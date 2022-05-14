@@ -15,7 +15,7 @@ type Repository interface {
 	FindById(id uint64) (playlist *entities.Playlist, err error)
 	FindAll() (playlists []entities.Playlist, err error)
 	FindByQuery(key string, value interface{}) (playlist []entities.Playlist, err error)
-	Insert(data entities.Playlist) (err error)
+	Insert(data entities.Playlist) (id uint64, err error)
 	Update(data entities.Playlist) (playlist *entities.Playlist, err error)
 	Delete(id uint64) (err error)
 	AddPlaylistMusic(data entities.PlaylistMusic) (err error)
@@ -28,7 +28,7 @@ type Service interface {
 	Access(userId uint64, playlistId uint64) (err error)
 	GetById(id uint64) (playlist *entities.Playlist, err error)
 	GetAll() (playlists []entities.Playlist, err error)
-	Create(dto dto.PlaylistDTO) (err error)
+	Create(dto dto.PlaylistDTO) (id uint64, err error)
 	Modify(id uint64, dto dto.PlaylistDTO) (playlist *entities.Playlist, err error)
 	Remove(userId uint64, playlistId uint64) (err error)
 	AddPlaylistMusic(userId uint64, dto dto.PlaylistMusicDTO) (err error)
@@ -84,16 +84,17 @@ func (s *service) GetAll() (playlists []entities.Playlist, err error) {
 	return
 }
 
-func (s *service) Create(dto dto.PlaylistDTO) (err error) {
+func (s *service) Create(dto dto.PlaylistDTO) (id uint64, err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
 		// bad request
-		return goplaylist.ErrBadRequest
+		err = goplaylist.ErrBadRequest
+		return
 	}
 
 	newPlaylist := entities.ObjPlaylist(dto.Name, dto.Owner)
 
-	err = s.repository.Insert(*newPlaylist)
+	id, err = s.repository.Insert(*newPlaylist)
 	// internal server error
 	return
 }

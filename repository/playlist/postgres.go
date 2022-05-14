@@ -29,36 +29,6 @@ func NewPostgresRepository(db *gorm.DB) *PostgresRepository {
 	}
 }
 
-// func (repo *PostgresRepository) Exist(id uint64) (playlist *entities.Playlist, err error) {
-// 	opr := repo.db.Begin()
-
-// 	defer func() {
-// 		if r := recover(); r != nil {
-// 			opr.Rollback()
-// 		}
-// 	}()
-
-// 	if err = opr.Error; err != nil {
-// 		return nil, err
-// 	}
-
-// 	err = opr.First(&playlist, id).Error
-
-// 	if gorm.ErrRecordNotFound == err {
-// 		err = goplaylist.ErrNotFound
-// 		return
-// 	}
-
-// 	if err != nil {
-// 		err = errors.New("internal server error")
-// 		return
-// 	}
-
-// 	opr.Commit()
-
-// 	return
-// }
-
 func (repo *PostgresRepository) ExistCollab(userId uint64, playlistId uint64) (playlist *entities.Playlist, err error) {
 	fmt.Println(userId, playlistId)
 	opr := repo.db.Begin()
@@ -160,7 +130,7 @@ func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (play
 	return
 }
 
-func (repo *PostgresRepository) Insert(data entities.Playlist) (err error) {
+func (repo *PostgresRepository) Insert(data entities.Playlist) (id uint64, err error) {
 
 	opr := repo.db.Begin()
 
@@ -171,7 +141,8 @@ func (repo *PostgresRepository) Insert(data entities.Playlist) (err error) {
 	}()
 
 	if err = opr.Error; err != nil {
-		return goplaylist.ErrInternalServer
+		err = goplaylist.ErrInternalServer
+		return
 	}
 
 	err = opr.Create(&data).Error
@@ -181,7 +152,7 @@ func (repo *PostgresRepository) Insert(data entities.Playlist) (err error) {
 		err = goplaylist.ErrInternalServer
 		return
 	}
-
+	id = data.ID
 	opr.Commit()
 
 	return
