@@ -45,6 +45,7 @@ func newPostgres(config *config.AppConfig) *gorm.DB {
 	}
 
 	// db.Migrator().DropTable(&entities.User{}, &entities.Music{}, &entities.Playlist{}, &entities.Collaboration{}, &entities.PlaylistMusic{})
+	// db.Migrator().DropTable(&entities.Playlist{}, &entities.Collaboration{}, &entities.PlaylistMusic{})
 	// db.AutoMigrate(&entities.User{}, &entities.Music{}, &entities.Playlist{})
 	// entities.Collaboration{}.BeforeCreate(db)
 	// entities.PlaylistMusic{}.BeforeCreate(db)

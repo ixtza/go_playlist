@@ -96,7 +96,7 @@ func (repo *PostgresRepository) FindAll() (playlist []entities.Playlist, err err
 		return nil, goplaylist.ErrInternalServer
 	}
 
-	err = opr.Preload("Musics").Find(&playlist).Error
+	err = opr.Find(&playlist).Error
 	if err != nil {
 		err = goplaylist.ErrNotFound
 		return
