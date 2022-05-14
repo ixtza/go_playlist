@@ -22,7 +22,7 @@ type Service interface {
 	// GetAll() (collaborations []entities.Collaboration, err error)
 	Exist(userId uint64, playlistId uint64) (result bool, err error)
 	Create(dto dto.CollaborationDTO) (err error)
-	Remove(userId uint64, playlistId uint64) (result bool, err error)
+	Remove(userId uint64, playlistId uint64) (err error)
 }
 
 type service struct {
@@ -67,10 +67,10 @@ func (s *service) Create(dto dto.CollaborationDTO) (err error) {
 	return
 }
 
-func (s *service) Remove(userId uint64, playlistId uint64) (result bool, err error) {
+func (s *service) Remove(userId uint64, playlistId uint64) (err error) {
 	err = s.repository.Delete(userId, playlistId)
 	if err != nil {
-		result = false
+		return
 	}
-	return true, nil
+	return
 }

@@ -150,7 +150,7 @@ func (repo *PostgresRepository) Insert(data entities.Collaboration) (err error) 
 func (repo *PostgresRepository) Delete(userId uint64, playlistId uint64) (err error) {
 	err = repo.db.Where("playlist_id = ?", playlistId).Where("user_id = ?", userId).Delete(&entities.Collaboration{}).Error
 	if err != nil {
-		err = goplaylist.ErrInternalServer
+		err = goplaylist.ErrNotFound
 		return
 	}
 	return
