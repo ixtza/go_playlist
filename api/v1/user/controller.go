@@ -47,7 +47,7 @@ func (controller *Controller) Modify(c echo.Context) error {
 	if err := c.Bind(createUserRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
-
+	// TODO: get payload dulu, trus dicek dengan id pada parameter end point baru abis itu bind data
 	data := strings.Split(c.Get("payload").(string), ":")
 
 	if data[1] != createUserRequest.Email {

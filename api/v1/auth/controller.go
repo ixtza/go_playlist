@@ -1,7 +1,9 @@
 package auth
 
 import (
+	v1 "mini-clean/api/v1"
 	"mini-clean/api/v1/auth/request"
+	"mini-clean/api/v1/auth/response"
 	authService "mini-clean/service/auth"
 	"net/http"
 
@@ -24,13 +26,22 @@ func NewController(service authService.Service) *Controller {
 func (controller *Controller) Auth(c echo.Context) error {
 	authRequest := new(request.AuthRequest)
 	if err := c.Bind(authRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
 	token, err := controller.service.Login(*authRequest.ToSpec())
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
-
-	return c.JSON(http.StatusOK, token)
+	// TODO: ganti status jadi accepted, data token tidak usah ditaruh kedalam interface
+	return c.JSON(v1.GetErrorStatus(err), response.ResponseSuccess{
+		Status: "fail",
+		Data:   map[string]interface{}{"token": token},
+	})
 }
