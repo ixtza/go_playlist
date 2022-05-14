@@ -1,6 +1,7 @@
 package user
 
 import (
+	goplaylist "mini-clean"
 	"mini-clean/entities"
 
 	"gorm.io/gorm"
@@ -32,10 +33,14 @@ func (repo *PostgresRepository) FindById(id uint64) (user *entities.User, err er
 	}()
 
 	if err = opr.Error; err != nil {
-		return nil, err
+		return nil, goplaylist.ErrInternalServer
 	}
 
 	err = opr.First(&user, id).Error
+	if err != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
 
 	opr.Commit()
 
@@ -52,10 +57,14 @@ func (repo *PostgresRepository) FindAll() (users []entities.User, err error) {
 	}()
 
 	if err = opr.Error; err != nil {
-		return nil, err
+		return nil, goplaylist.ErrInternalServer
 	}
 
 	err = opr.Find(&users).Error
+	if err != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
 
 	opr.Commit()
 	return
@@ -71,10 +80,14 @@ func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (user
 	}()
 
 	if err = opr.Error; err != nil {
-		return user, err
+		return user, goplaylist.ErrInternalServer
 	}
 
 	err = opr.Where(key+" = ?", value).Find(&user).Error
+	if err != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
 
 	opr.Commit()
 	return
@@ -91,10 +104,14 @@ func (repo *PostgresRepository) Insert(data entities.User) (err error) {
 	}()
 
 	if err = opr.Error; err != nil {
-		return err
+		return goplaylist.ErrInternalServer
 	}
 
 	err = opr.Create(&data).Error
+	if err != nil {
+		err = goplaylist.ErrInternalServer
+		return
+	}
 
 	opr.Commit()
 
@@ -104,10 +121,6 @@ func (repo *PostgresRepository) Insert(data entities.User) (err error) {
 func (repo *PostgresRepository) Update(data entities.User) (user *entities.User, err error) {
 	opr := repo.db.Begin()
 
-	if err != nil {
-		return nil, err
-	}
-
 	defer func() {
 		if r := recover(); r != nil {
 			opr.Rollback()
@@ -115,12 +128,20 @@ func (repo *PostgresRepository) Update(data entities.User) (user *entities.User,
 	}()
 
 	if err = opr.Error; err != nil {
-		return nil, err
+		return nil, goplaylist.ErrInternalServer
 	}
 
 	err = opr.First(&user, data.ID).Error
+	if err != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
 
 	err = opr.Model(&user).Omit("ID", "email").Updates(map[string]interface{}{"name": data.Name, "password": data.Password}).Error
+	if err != nil {
+		err = goplaylist.ErrInternalServer
+		return
+	}
 
 	opr.Commit()
 
