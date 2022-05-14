@@ -1,7 +1,6 @@
 package playlist
 
 import (
-	"fmt"
 	"mini-clean/entities"
 	"mini-clean/service/playlist/dto"
 
@@ -172,7 +171,7 @@ func (s *service) GetPlaylistMusicById(userId uint64, playlistId uint64) (playli
 
 func (s *service) RemovePlaylistMusicById(userId uint64, musicId uint64, playlistId uint64) (err error) {
 	err = s.Access(userId, playlistId)
-	fmt.Println(err)
+
 	if err != nil {
 		err = s.Ownership(userId, playlistId)
 		// error unauthorized / error not found

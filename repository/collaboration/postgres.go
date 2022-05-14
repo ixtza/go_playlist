@@ -1,7 +1,6 @@
 package collaboration
 
 import (
-	"fmt"
 	goplaylist "mini-clean"
 	"mini-clean/entities"
 
@@ -15,7 +14,7 @@ type PostgresRepository struct {
 func Migrate(db *gorm.DB) {
 	err := db.SetupJoinTable(&entities.Playlist{}, "Users", &entities.Collaboration{})
 	if err != nil {
-		fmt.Println(err)
+
 	}
 	db.AutoMigrate(&entities.Collaboration{})
 }

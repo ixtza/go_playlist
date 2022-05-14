@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -16,7 +15,7 @@ type PlaylistMusic struct {
 func (PlaylistMusic) BeforeCreate(db *gorm.DB) (err error) {
 	err = db.SetupJoinTable(&Playlist{}, "Musics", &PlaylistMusic{})
 	if err != nil {
-		fmt.Println(err)
+
 	}
 	db.AutoMigrate(&PlaylistMusic{})
 	return

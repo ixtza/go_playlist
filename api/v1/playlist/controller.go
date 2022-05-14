@@ -1,7 +1,6 @@
 package playlist
 
 import (
-	"fmt"
 	v1 "mini-clean/api/v1"
 	"mini-clean/api/v1/playlist/request"
 	"mini-clean/api/v1/playlist/response"
@@ -218,7 +217,7 @@ func (controller *Controller) AddPlaylistMusic(c echo.Context) error {
 	req := *createPlaylistMusicRequest.ToSpec(uint64(id))
 
 	err = controller.service.AddPlaylistMusic(uint64(userId), req)
-	fmt.Println(err)
+
 	if err != nil {
 		return c.JSON(v1.GetErrorStatus(err), response.Response{
 			Status:  "fail",
@@ -253,7 +252,7 @@ func (controller *Controller) GetPlaylistMusicById(c echo.Context) error {
 	}
 	res, err := controller.service.GetPlaylistMusicById(uint64(userId), uint64(id))
 	if err != nil {
-		fmt.Println(err)
+
 		return c.JSON(v1.GetErrorStatus(err), response.Response{
 			Status:  "fail",
 			Message: err.Error(),

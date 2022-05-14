@@ -17,7 +17,7 @@ func Migrate(db *gorm.DB) {
 	db.AutoMigrate(&entities.Playlist{})
 	err := db.SetupJoinTable(&entities.Playlist{}, "Musics", &entities.PlaylistMusic{})
 	if err != nil {
-		fmt.Println(err)
+
 	}
 	db.AutoMigrate(&entities.PlaylistMusic{})
 }
