@@ -13,14 +13,14 @@ type Repository interface {
 	FindById(id uint64) (user *entities.User, err error)
 	FindAll() (users []entities.User, err error)
 	FindByQuery(key string, value interface{}) (user *entities.User, err error)
-	Insert(data entities.User) (err error)
+	Insert(data entities.User) (id uint64, err error)
 	Update(data entities.User) (user *entities.User, err error)
 }
 
 type Service interface {
 	GetById(id uint64) (user *entities.User, err error)
 	GetAll() (users []entities.User, err error)
-	Create(dto dto.UserDTO) (err error)
+	Create(dto dto.UserDTO) (id uint64, err error)
 	Modify(dto dto.UserDTO) (user *entities.User, err error)
 }
 
@@ -49,16 +49,17 @@ func (s *service) GetAll() (users []entities.User, err error) {
 	return users, nil
 }
 
-func (s *service) Create(dto dto.UserDTO) (err error) {
+func (s *service) Create(dto dto.UserDTO) (id uint64, err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
-		return goplaylist.ErrBadRequest
+		err = goplaylist.ErrBadRequest
+		return
 	}
 
 	newUser := entities.ObjUser(dto.Name, dto.Email, dto.Password)
 
-	err = s.repository.Insert(*newUser)
-	return err
+	id, err = s.repository.Insert(*newUser)
+	return
 }
 
 func (s *service) Modify(dto dto.UserDTO) (user *entities.User, err error) {
