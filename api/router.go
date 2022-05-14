@@ -29,8 +29,8 @@ func RegistrationPath(e *echo.Echo, controller Controller) {
 	userV1 := e.Group("/v1/users")
 	userV1.Use(controller.MiddlewareJwt.JwtMiddleware())
 	userV1.GET("/:id", controller.UserV1Controller.GetByID)
-	userV1.PUT("", controller.UserV1Controller.Modify)
-	userV1.DELETE("/:id", controller.UserV1Controller.Delete)
+	userV1.PUT("/:id", controller.UserV1Controller.Modify)
+	// userV1.DELETE("/:id", controller.UserV1Controller.Delete)
 
 	playlistV1 := e.Group("/v1/playlists")
 	playlistV1.Use(controller.MiddlewareJwt.JwtMiddleware())
@@ -54,7 +54,7 @@ func RegistrationPath(e *echo.Echo, controller Controller) {
 	collaborationV1 := e.Group("/v1/collaborations")
 	collaborationV1.Use(controller.MiddlewareJwt.JwtMiddleware())
 	collaborationV1.POST("", controller.CollabV1Controller.Create)
-	collaborationV1.DELETE("/:id", controller.CollabV1Controller.Remove)
+	collaborationV1.DELETE("", controller.CollabV1Controller.Remove)
 
 	// playlistMusicsV1 := e.Group("/v1/playlistmusics")
 	// playlistMusicsV1.Use(controller.MiddlewareJwt.JwtMiddleware())
