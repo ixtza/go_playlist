@@ -29,7 +29,7 @@ func RegistrationPath(e *echo.Echo, controller Controller) {
 	userV1 := e.Group("/v1/users")
 	userV1.Use(controller.MiddlewareJwt.JwtMiddleware())
 	userV1.GET("/:id", controller.UserV1Controller.GetByID)
-	userV1.PUT("", controller.UserV1Controller.Modify)
+	userV1.PUT("/:id", controller.UserV1Controller.Modify)
 	// userV1.DELETE("/:id", controller.UserV1Controller.Delete)
 
 	playlistV1 := e.Group("/v1/playlists")

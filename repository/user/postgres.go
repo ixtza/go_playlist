@@ -36,7 +36,7 @@ func (repo *PostgresRepository) FindById(id uint64) (user *entities.User, err er
 		return nil, goplaylist.ErrInternalServer
 	}
 
-	err = opr.First(&user, id).Error
+	err = opr.Omit("password").First(&user, id).Error
 	if err != nil {
 		err = goplaylist.ErrNotFound
 		return
@@ -60,7 +60,7 @@ func (repo *PostgresRepository) FindAll() (users []entities.User, err error) {
 		return nil, goplaylist.ErrInternalServer
 	}
 
-	err = opr.Find(&users).Error
+	err = opr.Omit("password").Find(&users).Error
 	if err != nil {
 		err = goplaylist.ErrNotFound
 		return
@@ -83,7 +83,7 @@ func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (user
 		return user, goplaylist.ErrInternalServer
 	}
 
-	err = opr.Where(key+" = ?", value).Find(&user).Error
+	err = opr.Omit("password").Where(key+" = ?", value).Find(&user).Error
 	if err != nil {
 		err = goplaylist.ErrNotFound
 		return
