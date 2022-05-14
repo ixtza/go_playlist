@@ -1,8 +1,9 @@
 package user
 
 import (
-	"errors"
+	v1 "mini-clean/api/v1"
 	"mini-clean/api/v1/user/request"
+	"mini-clean/api/v1/user/response"
 	userUsecase "mini-clean/service/user"
 	"net/http"
 	"strconv"
@@ -25,35 +26,65 @@ func (controller *Controller) GetByID(c echo.Context) error {
 	params := c.Param("id")
 	id, err := strconv.Atoi(params)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 	user, err := controller.service.GetById(uint64(id))
 	if err != nil {
-		return err
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
-	return c.JSON(http.StatusOK, user)
+	return c.JSON(v1.GetErrorStatus(err), response.ResponseSuccess{
+		Status: "success",
+		Data:   user,
+	})
 }
 
 func (controller *Controller) Modify(c echo.Context) error {
-	createUserRequest := new(request.CreateUserRequest)
-	if err := c.Bind(createUserRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+
+	params := c.Param("id")
+	if params == "" {
+		return c.JSON(http.StatusNotFound, response.Response{
+			Status:  "fail",
+			Message: "put user id in endpoint",
+		})
 	}
 
 	data := strings.Split(c.Get("payload").(string), ":")
 
-	if data[1] != createUserRequest.Email {
-		return errors.New("invalid username or password")
+	if data[0] != params {
+		return c.JSON(http.StatusUnauthorized, response.Response{
+			Status:  "fail",
+			Message: "invalid username or password",
+		})
+	}
+
+	createUserRequest := new(request.CreateUserRequest)
+	if err := c.Bind(createUserRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
 	req := *createUserRequest.ToSpec()
 	_, err := controller.service.Modify(req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
-	return c.JSON(http.StatusOK, "")
+	return c.JSON(v1.GetErrorStatus(err), response.Response{
+		Status:  "success",
+		Message: "user data updated",
+	})
 }
 
 func (controller *Controller) GetAll(c echo.Context) error {
@@ -61,28 +92,43 @@ func (controller *Controller) GetAll(c echo.Context) error {
 	users, err := controller.service.GetAll()
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
-	return c.JSON(http.StatusOK, users)
+	return c.JSON(v1.GetErrorStatus(err), response.ResponseSuccess{
+		Status: "success",
+		Data:   users,
+	})
 }
 
 func (controller *Controller) Create(c echo.Context) error {
 	createUserRequest := new(request.CreateUserRequest)
 	if err := c.Bind(createUserRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
 	req := *createUserRequest.ToSpec()
 
-	err := controller.service.Create(req)
+	id, err := controller.service.Create(req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
-	return c.JSON(http.StatusCreated, "")
+	return c.JSON(http.StatusCreated, response.ResponseSuccess{
+		Status: "success",
+		Data:   map[string]interface{}{"user_id": id},
+	})
 }
 
-func (controller *Controller) Delete(c echo.Context) error {
-	return errors.New("some error")
-}
+// func (controller *Controller) Delete(c echo.Context) error {
+// 	return errors.New("some error")
+// }

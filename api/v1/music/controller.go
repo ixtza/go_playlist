@@ -1,8 +1,10 @@
 package music
 
 import (
+	v1 "mini-clean/api/v1"
 	"mini-clean/api/v1/music/request"
-	musicUsecase "mini-clean/service/musixMatch"
+	"mini-clean/api/v1/music/response"
+	musicUsecase "mini-clean/service/musixmatch"
 	"net/http"
 	"strconv"
 
@@ -23,13 +25,22 @@ func (controller *Controller) GetByID(c echo.Context) error {
 	params := c.Param("id")
 	id, err := strconv.Atoi(params)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 	music, err := controller.service.GetById(uint64(id))
 	if err != nil {
-		return err
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
-	return c.JSON(http.StatusOK, music)
+	return c.JSON(v1.GetErrorStatus(err), response.ResponseSuccess{
+		Status: "success",
+		Data:   music,
+	})
 }
 
 func (controller *Controller) Modify(c echo.Context) error {
@@ -40,40 +51,50 @@ func (controller *Controller) Modify(c echo.Context) error {
 	}
 	createMusicRequest := new(request.CreateMusicRequest)
 	if err := c.Bind(createMusicRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
-	}
-
-	// data := strings.Split(c.Get("payload").(string), ":")
-
-	// userId, err := strconv.Atoi(data[0])
-
-	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
 	req := *createMusicRequest.ToSpec()
 	_, err = controller.service.Modify(uint64(id), req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
-	return c.JSON(http.StatusOK, "")
+	return c.JSON(v1.GetErrorStatus(err), response.Response{
+		Status:  "success",
+		Message: "Music iD :" + params + " Updated",
+	})
 }
 
 func (controller *Controller) Create(c echo.Context) error {
 	createMusicRequest := new(request.CreateMusicRequest)
 	if err := c.Bind(createMusicRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
 	req := *createMusicRequest.ToSpec()
 
 	err := controller.service.Create(req)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
-	return c.JSON(http.StatusCreated, "")
+	return c.JSON(http.StatusCreated, response.Response{
+		Status:  "success",
+		Message: "music created",
+	})
 }
 
 func (controller *Controller) Delete(c echo.Context) error {
@@ -81,20 +102,35 @@ func (controller *Controller) Delete(c echo.Context) error {
 	params := c.Param("id")
 	id, err := strconv.Atoi(params)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
-	res, err := controller.service.Remove(uint64(id))
-	if err != nil || res {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+	err = controller.service.Remove(uint64(id))
+	if err != nil {
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
-	return c.JSON(http.StatusOK, "")
+	return c.JSON(v1.GetErrorStatus(err), response.Response{
+		Status:  "success",
+		Message: "music deleted",
+	})
 }
 
 func (controller *Controller) GetAll(c echo.Context) error {
 	musics, err := controller.service.GetAll()
 	if err != nil || len(musics) == 0 {
-		return c.JSON(http.StatusInternalServerError, "")
+		return c.JSON(v1.GetErrorStatus(err), response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
-	return c.JSON(http.StatusOK, musics)
+	return c.JSON(v1.GetErrorStatus(err), response.ResponseSuccess{
+		Status: "success",
+		Data:   musics,
+	})
 }
