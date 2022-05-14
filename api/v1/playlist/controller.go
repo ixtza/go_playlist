@@ -91,8 +91,8 @@ func (controller *Controller) Modify(c echo.Context) error {
 		})
 	}
 	return c.JSON(v1.GetErrorStatus(err), response.Response{
-		Status:  "fail",
-		Message: "success",
+		Status:  "success",
+		Message: "playlist " + params + " updated",
 	})
 }
 
@@ -168,7 +168,7 @@ func (controller *Controller) Delete(c echo.Context) error {
 	}
 	return c.JSON(v1.GetErrorStatus(err), response.Response{
 		Status:  "success",
-		Message: "playlist id's" + params + " deleted",
+		Message: "playlist id's " + params + " deleted",
 	})
 }
 
