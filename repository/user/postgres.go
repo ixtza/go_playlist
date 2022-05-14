@@ -83,7 +83,7 @@ func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (user
 		return user, goplaylist.ErrInternalServer
 	}
 
-	err = opr.Omit("password").Where(key+" = ?", value).Find(&user).Error
+	err = opr.Where(key+" = ?", value).Find(&user).Error
 	if err != nil {
 		err = goplaylist.ErrNotFound
 		return
