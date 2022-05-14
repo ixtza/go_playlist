@@ -74,7 +74,6 @@ func (repo *PostgresRepository) FindAll() (musics []entities.Music, err error) {
 
 func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (music *entities.Music, err error) {
 	opr := repo.db.Begin()
-
 	defer func() {
 		if r := recover(); r != nil {
 			opr.Rollback()
@@ -85,7 +84,7 @@ func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (musi
 		return nil, goplaylist.ErrInternalServer
 	}
 
-	err = opr.Where(key+" = ?", value).Find(&music).Error
+	err = opr.Where(key+" = ?", value).First(&music).Error
 	if err != nil {
 		err = goplaylist.ErrNotFound
 		return
@@ -150,7 +149,12 @@ func (repo *PostgresRepository) Update(data entities.Music) (music *entities.Mus
 }
 
 func (repo *PostgresRepository) Delete(id uint64) (err error) {
-	err = repo.db.Select(clause.Associations).Where("id = ?", id).Delete(&entities.Music{ID: id}).Error
+	music, er := repo.FindById(id)
+	if er != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
+	err = repo.db.Select(clause.Associations).Where("id = ?", id).Delete(music).Error
 	if err != nil {
 		err = goplaylist.ErrInternalServer
 		return

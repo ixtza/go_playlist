@@ -66,7 +66,7 @@ func (controller *Controller) Create(c echo.Context) error {
 
 	return c.JSON(http.StatusCreated, response.Response{
 		Status:  "success",
-		Message: "User " + data[0] + " added to collaboration",
+		Message: "User " + strconv.Itoa(int(createCollborationRequest.UserID)) + " added to collaboration",
 	})
 }
 
