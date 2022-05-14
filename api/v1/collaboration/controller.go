@@ -66,7 +66,7 @@ func (controller *Controller) Create(c echo.Context) error {
 
 	return c.JSON(http.StatusCreated, response.Response{
 		Status:  "success",
-		Message: "created",
+		Message: "User " + data[0] + " added to collaboration",
 	})
 }
 
@@ -100,17 +100,19 @@ func (controller *Controller) Remove(c echo.Context) error {
 		})
 	}
 
-	res, err := controller.serviceCollab.Remove(uint64(req.UserID), uint64(req.PlaylistID))
+	err = controller.serviceCollab.Remove(uint64(req.UserID), uint64(req.PlaylistID))
 
-	if err != nil || res {
+	if err != nil {
 		return c.JSON(v1.GetErrorStatus(err), response.Response{
 			Status:  "error",
 			Message: err.Error(),
 		})
 	}
 
+	userId := strconv.Itoa(int(req.UserID))
+
 	return c.JSON(v1.GetErrorStatus(err), response.Response{
 		Status:  "success",
-		Message: err.Error(),
+		Message: "User id's " + userId + " removed from collboration",
 	})
 }
