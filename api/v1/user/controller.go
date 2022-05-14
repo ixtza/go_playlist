@@ -115,7 +115,7 @@ func (controller *Controller) Create(c echo.Context) error {
 
 	req := *createUserRequest.ToSpec()
 
-	err := controller.service.Create(req)
+	id, err := controller.service.Create(req)
 	if err != nil {
 		return c.JSON(v1.GetErrorStatus(err), response.Response{
 			Status:  "fail",
@@ -123,9 +123,9 @@ func (controller *Controller) Create(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusCreated, response.Response{
-		Status:  "success",
-		Message: "user created",
+	return c.JSON(http.StatusCreated, response.ResponseSuccess{
+		Status: "success",
+		Data:   map[string]interface{}{"user_id": id},
 	})
 }
 

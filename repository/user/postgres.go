@@ -93,7 +93,7 @@ func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (user
 	return
 }
 
-func (repo *PostgresRepository) Insert(data entities.User) (err error) {
+func (repo *PostgresRepository) Insert(data entities.User) (id uint64, err error) {
 
 	opr := repo.db.Begin()
 
@@ -104,7 +104,8 @@ func (repo *PostgresRepository) Insert(data entities.User) (err error) {
 	}()
 
 	if err = opr.Error; err != nil {
-		return goplaylist.ErrInternalServer
+		err = goplaylist.ErrInternalServer
+		return
 	}
 
 	err = opr.Create(&data).Error
@@ -112,7 +113,7 @@ func (repo *PostgresRepository) Insert(data entities.User) (err error) {
 		err = goplaylist.ErrInternalServer
 		return
 	}
-
+	id = data.ID
 	opr.Commit()
 
 	return
