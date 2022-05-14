@@ -26,7 +26,10 @@ func (controller *Controller) GetByID(c echo.Context) error {
 	params := c.Param("id")
 	id, err := strconv.Atoi(params)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 	user, err := controller.service.GetById(uint64(id))
 	if err != nil {
@@ -43,17 +46,29 @@ func (controller *Controller) GetByID(c echo.Context) error {
 }
 
 func (controller *Controller) Modify(c echo.Context) error {
-	createUserRequest := new(request.CreateUserRequest)
-	if err := c.Bind(createUserRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+
+	params := c.Param("id")
+	if params == "" {
+		return c.JSON(http.StatusNotFound, response.Response{
+			Status:  "fail",
+			Message: "put user id in endpoint",
+		})
 	}
 
 	data := strings.Split(c.Get("payload").(string), ":")
 
-	if data[1] != createUserRequest.Email {
+	if data[0] != params {
 		return c.JSON(http.StatusUnauthorized, response.Response{
 			Status:  "fail",
 			Message: "invalid username or password",
+		})
+	}
+
+	createUserRequest := new(request.CreateUserRequest)
+	if err := c.Bind(createUserRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Status:  "fail",
+			Message: err.Error(),
 		})
 	}
 
@@ -92,7 +107,10 @@ func (controller *Controller) GetAll(c echo.Context) error {
 func (controller *Controller) Create(c echo.Context) error {
 	createUserRequest := new(request.CreateUserRequest)
 	if err := c.Bind(createUserRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, response.Response{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 
 	req := *createUserRequest.ToSpec()

@@ -2,6 +2,7 @@ package user
 
 import (
 	"fmt"
+	goplaylist "mini-clean"
 	"mini-clean/entities"
 	"mini-clean/service/user/dto"
 
@@ -51,7 +52,7 @@ func (s *service) GetAll() (users []entities.User, err error) {
 func (s *service) Create(dto dto.UserDTO) (err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
-		return err
+		return goplaylist.ErrBadRequest
 	}
 
 	newUser := entities.ObjUser(dto.Name, dto.Email, dto.Password)
@@ -63,7 +64,7 @@ func (s *service) Create(dto dto.UserDTO) (err error) {
 func (s *service) Modify(dto dto.UserDTO) (user *entities.User, err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
-		return nil, err
+		return nil, goplaylist.ErrBadRequest
 	}
 
 	user, err = s.repository.FindByQuery("email", dto.Email)
