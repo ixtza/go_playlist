@@ -94,7 +94,7 @@ func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (musi
 	return
 }
 
-func (repo *PostgresRepository) Insert(data entities.Music) (err error) {
+func (repo *PostgresRepository) Insert(data entities.Music) (id uint64, err error) {
 
 	opr := repo.db.Begin()
 
@@ -105,7 +105,8 @@ func (repo *PostgresRepository) Insert(data entities.Music) (err error) {
 	}()
 
 	if err = opr.Error; err != nil {
-		return goplaylist.ErrInternalServer
+		err = goplaylist.ErrInternalServer
+		return
 	}
 
 	err = opr.Create(&data).Error
@@ -114,7 +115,7 @@ func (repo *PostgresRepository) Insert(data entities.Music) (err error) {
 		return
 	}
 	opr.Commit()
-
+	id = data.ID
 	return
 }
 
