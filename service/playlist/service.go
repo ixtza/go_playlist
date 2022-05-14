@@ -49,8 +49,8 @@ func NewService(repository Repository) Service {
 }
 
 func (s *service) Ownership(userId uint64, playlistId uint64) (err error) {
-	_, err = s.repository.FindByQuery("owner", userId)
-	if err != nil {
+	data, err := s.repository.FindById(playlistId)
+	if err != nil || data.Owner != userId {
 		err = goplaylist.ErrUnauthorized
 		return
 	}
