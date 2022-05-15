@@ -1,8 +1,8 @@
 package collaboration
 
 import (
-	goplaylist "mini-clean"
 	"mini-clean/entities"
+	goplaylist "mini-clean/error"
 	"mini-clean/service/collaboration/dto"
 
 	"github.com/go-playground/validator/v10"
@@ -53,6 +53,7 @@ func (s *service) Create(dto dto.CollaborationDTO) (err error) {
 }
 
 func (s *service) Remove(userId uint64, playlistId uint64) (err error) {
+
 	err = s.repository.Delete(userId, playlistId)
 	if err != nil {
 		return

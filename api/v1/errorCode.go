@@ -1,7 +1,7 @@
 package v1
 
 import (
-	goplaylist "mini-clean"
+	goplaylist "mini-clean/error"
 	"net/http"
 )
 

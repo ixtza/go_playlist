@@ -1,11 +1,11 @@
 package response
 
-type Response struct {
+type AuthResponse struct {
 	Status  string      `json:"status"`
 	Message interface{} `json:"message"`
 }
 
-type ResponseSuccess struct {
+type AuthResponseSuccess struct {
 	Status string      `json:"status"`
 	Data   interface{} `json:"data"`
 }

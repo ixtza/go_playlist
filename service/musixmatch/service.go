@@ -3,8 +3,8 @@ package musixmatch
 import (
 	"encoding/json"
 	"io/ioutil"
-	goplaylist "mini-clean"
 	"mini-clean/entities"
+	goplaylist "mini-clean/error"
 	"mini-clean/service/musixmatch/dto"
 	"net/http"
 	"strconv"

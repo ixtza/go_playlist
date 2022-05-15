@@ -23,10 +23,21 @@ func NewController(service authService.Service) *Controller {
 	}
 }
 
+// Auth godoc
+// @Summary      User Authentication
+// @Description  Authenticate user's info
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Failure      200  {object}  response.AuthResponseSuccess
+// @Failure      400  {object}  response.AuthResponse
+// @Failure      401  {object}  response.AuthResponse
+// @Failure      500  {object}  response.AuthResponse
+// @Router       /auth [post]
 func (controller *Controller) Auth(c echo.Context) error {
 	authRequest := new(request.AuthRequest)
 	if err := c.Bind(authRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, response.Response{
+		return c.JSON(http.StatusBadRequest, response.AuthResponse{
 			Status:  "fail",
 			Message: err.Error(),
 		})
@@ -34,13 +45,13 @@ func (controller *Controller) Auth(c echo.Context) error {
 
 	token, err := controller.service.Login(*authRequest.ToSpec())
 	if err != nil {
-		return c.JSON(v1.GetErrorStatus(err), response.Response{
+		return c.JSON(v1.GetErrorStatus(err), response.AuthResponse{
 			Status:  "fail",
 			Message: err.Error(),
 		})
 	}
 
-	return c.JSON(v1.GetErrorStatus(err), response.ResponseSuccess{
+	return c.JSON(v1.GetErrorStatus(err), response.AuthResponseSuccess{
 		Status: "success",
 		Data:   token,
 	})

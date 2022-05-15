@@ -1,8 +1,8 @@
 package collaboration
 
 import (
-	goplaylist "mini-clean"
 	"mini-clean/entities"
+	goplaylist "mini-clean/error"
 
 	"gorm.io/gorm"
 )
@@ -147,9 +147,15 @@ func (repo *PostgresRepository) Insert(data entities.Collaboration) (err error) 
 }
 
 func (repo *PostgresRepository) Delete(userId uint64, playlistId uint64) (err error) {
-	err = repo.db.Where("playlist_id = ?", playlistId).Where("user_id = ?", userId).Delete(&entities.Collaboration{}).Error
+	var check entities.Collaboration
+	err = repo.db.First(&check, "user_id = ?", userId).Error
 	if err != nil {
 		err = goplaylist.ErrNotFound
+		return
+	}
+	err = repo.db.Where("playlist_id = ?", playlistId).Where("user_id = ?", userId).Delete(&entities.Collaboration{}).Error
+	if err != nil {
+		err = goplaylist.ErrInternalServer
 		return
 	}
 	return

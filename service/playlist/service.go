@@ -4,7 +4,7 @@ import (
 	"mini-clean/entities"
 	"mini-clean/service/playlist/dto"
 
-	goplaylist "mini-clean"
+	goplaylist "mini-clean/error"
 
 	"github.com/go-playground/validator/v10"
 )

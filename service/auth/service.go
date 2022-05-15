@@ -1,9 +1,9 @@
 package auth
 
 import (
-	"errors"
 	"mini-clean/config"
 	"mini-clean/entities"
+	goplaylist "mini-clean/error"
 	"mini-clean/service/auth/dto"
 	"time"
 
@@ -35,6 +35,10 @@ func NewService(config *config.AppConfig, repository Repository) Service {
 }
 
 func (s *service) Login(input dto.InputLogin) (auth *entities.Auth, err error) {
+	err = s.validate.Struct(input)
+	if err != nil {
+		return nil, goplaylist.ErrBadRequest
+	}
 
 	data := new(entities.User)
 	data, err = s.repository.FindByQuery("email", input.Email)
@@ -45,7 +49,7 @@ func (s *service) Login(input dto.InputLogin) (auth *entities.Auth, err error) {
 
 	excepctedPassword := data.Password
 	if excepctedPassword != input.Password {
-		return nil, errors.New("invalid username or password")
+		return nil, goplaylist.ErrUnauthorized
 	}
 
 	expirationTime := time.Now().Add(5 * time.Minute)
@@ -64,7 +68,7 @@ func (s *service) Login(input dto.InputLogin) (auth *entities.Auth, err error) {
 
 	tokenString, err := token.SignedString(screetKey)
 	if err != nil {
-		return nil, err
+		return nil, goplaylist.ErrInternalServer
 	}
 	auth = &entities.Auth{
 		Token: tokenString,

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"mini-clean/api/middleware/response"
 	"net/http"
 	"strings"
 
@@ -35,22 +36,31 @@ func (s *jwtMiddleware) JwtMiddleware() echo.MiddlewareFunc {
 
 			signature := strings.Split(c.Request().Header.Get("Authorization"), " ")
 			if len(signature) < 2 {
-				return c.JSON(http.StatusForbidden, "Invalid token")
+				return c.JSON(http.StatusForbidden, response.Response{
+					Status:  "error",
+					Message: "Invalid token",
+				})
 			}
 
 			if signature[0] != "Bearer" {
-				return c.JSON(http.StatusForbidden, "Invalid token")
+				return c.JSON(http.StatusForbidden, response.Response{
+					Status:  "error",
+					Message: "Invalid token",
+				})
 			}
 
 			claim := jwt.MapClaims{}
 
 			token, _ := jwt.ParseWithClaims(signature[1], claim, func(t *jwt.Token) (interface{}, error) {
-				return []byte("my_screet_key"), nil
+				return []byte(s.key), nil
 			})
 
 			method, ok := token.Method.(*jwt.SigningMethodHMAC)
 			if !ok || method != jwtSignedMethod {
-				return c.JSON(http.StatusForbidden, "Invalid token")
+				return c.JSON(http.StatusForbidden, response.Response{
+					Status:  "error",
+					Message: "Invalid token",
+				})
 			}
 
 			c.Set("payload", fmt.Sprintf("%v:%s", claim["ID"], claim["Username"].(string)))

@@ -1,8 +1,8 @@
 package user
 
 import (
-	goplaylist "mini-clean"
 	"mini-clean/entities"
+	goplaylist "mini-clean/error"
 
 	"gorm.io/gorm"
 )

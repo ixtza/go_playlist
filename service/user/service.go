@@ -1,8 +1,8 @@
 package user
 
 import (
-	goplaylist "mini-clean"
 	"mini-clean/entities"
+	goplaylist "mini-clean/error"
 	"mini-clean/service/user/dto"
 
 	"github.com/go-playground/validator/v10"

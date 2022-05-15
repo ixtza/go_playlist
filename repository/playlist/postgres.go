@@ -1,8 +1,8 @@
 package playlist
 
 import (
-	goplaylist "mini-clean"
 	"mini-clean/entities"
+	goplaylist "mini-clean/error"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

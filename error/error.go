@@ -1,4 +1,4 @@
-package goplaylist
+package error
 
 import "errors"
 

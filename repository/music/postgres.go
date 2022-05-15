@@ -1,8 +1,9 @@
 package music
 
 import (
-	goplaylist "mini-clean"
+	"fmt"
 	"mini-clean/entities"
+	goplaylist "mini-clean/error"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -83,7 +84,8 @@ func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (musi
 		return nil, goplaylist.ErrInternalServer
 	}
 
-	err = opr.Where(key+" = ?", value).First(&music).Error
+	err = opr.First(&music, key+" = ?", value).Error
+	fmt.Println(music, key, value)
 	if err != nil {
 		err = goplaylist.ErrNotFound
 		return
