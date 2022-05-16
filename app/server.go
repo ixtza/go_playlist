@@ -6,6 +6,7 @@ import (
 	"mini-clean/api"
 	"mini-clean/app/modules"
 	"mini-clean/config"
+	_ "mini-clean/docs"
 	"mini-clean/util"
 	"net/http"
 	"os"

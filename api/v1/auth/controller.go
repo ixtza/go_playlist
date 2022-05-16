@@ -29,7 +29,7 @@ func NewController(service authService.Service) *Controller {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Failure      200  {object}  response.AuthResponseSuccess
+// @Success      200  {object}  response.AuthResponseSuccess
 // @Failure      400  {object}  response.AuthResponse
 // @Failure      401  {object}  response.AuthResponse
 // @Failure      500  {object}  response.AuthResponse
