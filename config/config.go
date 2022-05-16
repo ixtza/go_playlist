@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/labstack/gommon/log"
@@ -15,8 +14,13 @@ type AppConfig struct {
 		JWTKey string `toml:"jwtkey" mapstructure:"jwtkey"`
 	} `toml:"app"`
 	Database struct {
-		Driver string `toml:"driver" mapstructure:"driver"`
-		DBURL  string `toml:"dburl" mapstructure:"dburl"`
+		Driver      string `toml:"driver" mapstructure:"driver"`
+		DBURL       string `toml:"dburl" mapstructure:"dburl"`
+		DB_HOST     string `toml:"dburl" mapstructure:"dbhost"`
+		DB_NAME     string `toml:"dburl" mapstructure:"dbname"`
+		DB_PORT     string `toml:"dburl" mapstructure:"dbport"`
+		DB_USER     string `toml:"dburl" mapstructure:"user"`
+		DB_PASSWORD string `toml:"dburl" mapstructure:"password"`
 	} `toml:"database"`
 	Log struct {
 		Driver string `toml:"driver" mapstructure:"driver"`
@@ -60,6 +64,5 @@ func initConfig() *AppConfig {
 		log.Info("error when parse config file", err)
 		return &defaultConfig
 	}
-	fmt.Println(finalConfig)
 	return &finalConfig
 }

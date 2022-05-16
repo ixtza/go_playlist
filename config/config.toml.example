@@ -6,10 +6,12 @@ jwtkey = ""
 driver = ""
 dburl = ""
 
-[log]
-driver = ""
-
 [openapi]
 musixmatch = ""
 musixmatchurl = ""
-mailgun = ""
+
+DB_HOST=
+DB_NAME=
+DB_PORT=
+DB_USER=
+DB_PASSWORD=
