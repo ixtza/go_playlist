@@ -139,7 +139,7 @@ func (repo *PostgresRepository) Update(data entities.Music) (music *entities.Mus
 		return
 	}
 
-	err = opr.Model(&music).Omit("ID").Updates(map[string]interface{}{"title": data.Title}).Error
+	err = opr.Model(&music).Omit("ID").Updates(map[string]interface{}{"title": data.Title, "musix_id": data.MusixID, "performer": data.Performer, "album_title": data.AlbumTitle}).Error
 	if err != nil {
 		err = goplaylist.ErrInternalServer
 		return

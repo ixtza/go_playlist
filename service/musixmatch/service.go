@@ -111,9 +111,13 @@ func (s *service) Create(dto dto.MusicDTO) (id uint64, err error) {
 		return
 	}
 
-	newMusic := entities.ObjMusic(dto.Title, dto.Performer, dto.AlbumTitle)
-	newMusic.MusixID = dto.MusixID
+	newMusic := entities.ObjMusic(dto.Title, dto.Performer, dto.AlbumTitle, dto.MusixID)
 	id, err = s.repository.Insert(*newMusic)
+	newMusic.ID = id
+	if newMusic.MusixID <= 0 {
+		newMusic.MusixID = id
+		_, err = s.repository.Update(*newMusic)
+	}
 	return
 }
 

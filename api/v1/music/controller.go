@@ -74,7 +74,10 @@ func (controller *Controller) Modify(c echo.Context) error {
 	params := c.Param("id")
 	id, err := strconv.Atoi(params)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, response.MusicResponse{
+			Status:  "fail",
+			Message: err.Error(),
+		})
 	}
 	createMusicRequest := new(request.CreateMusicRequest)
 	if err := c.Bind(createMusicRequest); err != nil {
