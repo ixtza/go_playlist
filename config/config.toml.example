@@ -4,14 +4,12 @@ jwtkey = ""
 
 [database]
 driver = ""
-dburl = ""
+dbhost = ""
+dbname = ""
+dbport = "" 
+user = ""
+password = ""
 
 [openapi]
 musixmatch = ""
 musixmatchurl = ""
-
-DB_HOST=
-DB_NAME=
-DB_PORT=
-DB_USER=
-DB_PASSWORD=

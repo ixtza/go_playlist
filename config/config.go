@@ -12,15 +12,14 @@ type AppConfig struct {
 	App struct {
 		Port   int    `toml:"port" mapstructure:"port"`
 		JWTKey string `toml:"jwtkey" mapstructure:"jwtkey"`
-	} `toml:"app"`
+	} `toml:"app" mapstructure:"app"`
 	Database struct {
 		Driver      string `toml:"driver" mapstructure:"driver"`
-		DBURL       string `toml:"dburl" mapstructure:"dburl"`
-		DB_HOST     string `toml:"dburl" mapstructure:"dbhost"`
-		DB_NAME     string `toml:"dburl" mapstructure:"dbname"`
-		DB_PORT     string `toml:"dburl" mapstructure:"dbport"`
-		DB_USER     string `toml:"dburl" mapstructure:"user"`
-		DB_PASSWORD string `toml:"dburl" mapstructure:"password"`
+		DB_HOST     string `toml:"DB_HOST" mapstructure:"dbhost"`
+		DB_NAME     string `toml:"DB_NAME" mapstructure:"dbname"`
+		DB_PORT     string `toml:"DB_PORT" mapstructure:"dbport"`
+		DB_USER     string `toml:"DB_USER" mapstructure:"user"`
+		DB_PASSWORD string `toml:"DB_PASSWORD" mapstructure:"password"`
 	} `toml:"database"`
 	Log struct {
 		Driver string `toml:"driver" mapstructure:"driver"`
@@ -49,8 +48,8 @@ func initConfig() *AppConfig {
 	var defaultConfig AppConfig
 	defaultConfig.App.Port = 5006
 
-	viper.SetConfigName("app")
-	viper.SetConfigType("env")
+	viper.SetConfigName("config")
+	viper.SetConfigType("toml")
 	viper.AddConfigPath("./config/")
 
 	if err := viper.ReadInConfig(); err != nil {
