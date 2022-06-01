@@ -4,8 +4,7 @@
         "description": "API yang memberikan layanan kepada pengguna untuk membuat playlist dan berkolaborasi",
         "title": "go_playlist API",
         "contact": {
-            "name": "API Support",
-            "email": "skiyejpjm@mozmail.com"
+            "name": "Some Dev"
         },
         "version": "1.0"
     },

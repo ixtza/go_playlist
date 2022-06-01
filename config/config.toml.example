@@ -1,15 +1,15 @@
 [app]
 port = 
-jwtkey = ""
+jwtkey = 
 
 [database]
-driver = ""
-dbhost = ""
-dbname = ""
-dbport = "" 
-user = ""
-password = ""
+driver = 
+dbhost =
+dbname =
+dbport = 
+user = 
+password = 
 
 [openapi]
-musixmatch = ""
-musixmatchurl = ""
+musixmatch = 
+musixmatchurl = 

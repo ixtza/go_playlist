@@ -18,8 +18,7 @@ import (
 // @title          go_playlist API
 // @version        1.0
 // @description    API yang memberikan layanan kepada pengguna untuk membuat playlist dan berkolaborasi
-// @contact.name   API Support
-// @contact.email  skiyejpjm@mozmail.com
+// @contact.name   Some Dev
 // @Basepath       /v1
 func main() {
 	config := config.GetConfig()
