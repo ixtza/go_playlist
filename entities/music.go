@@ -11,10 +11,11 @@ type Music struct {
 	gorm.Model
 }
 
-func ObjMusic(dataTitle string, dataPerformer string, dataAlbumTitle string) (music *Music) {
+func ObjMusic(dataTitle string, dataPerformer string, dataAlbumTitle string, dataMusix uint64) (music *Music) {
 	return &Music{
 		Title:      dataTitle,
 		Performer:  dataPerformer,
 		AlbumTitle: dataAlbumTitle,
+		MusixID:    dataMusix,
 	}
 }

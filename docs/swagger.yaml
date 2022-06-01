@@ -1,0 +1,801 @@
+basePath: /v1
+definitions:
+  request.CreateCollborationRequest:
+    properties:
+      playlist_id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  request.CreateMusicRequest:
+    properties:
+      album_title:
+        type: string
+      musix_id:
+        type: integer
+      performer:
+        type: string
+      title:
+        type: string
+    type: object
+  request.CreatePlaylistRequest:
+    properties:
+      name:
+        type: string
+      owner:
+        type: integer
+    type: object
+  request.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  response.AuthResponse:
+    properties:
+      message: {}
+      status:
+        type: string
+    type: object
+  response.AuthResponseSuccess:
+    properties:
+      data: {}
+      status:
+        type: string
+    type: object
+  response.CollaborationResponse:
+    properties:
+      message: {}
+      status:
+        type: string
+    type: object
+  response.MusicResponse:
+    properties:
+      message: {}
+      status:
+        type: string
+    type: object
+  response.MusicResponseSuccess:
+    properties:
+      data: {}
+      status:
+        type: string
+    type: object
+  response.PlaylistResponse:
+    properties:
+      message: {}
+      status:
+        type: string
+    type: object
+  response.PlaylistResponseSuccess:
+    properties:
+      data: {}
+      status:
+        type: string
+    type: object
+  response.UserResponse:
+    properties:
+      message: {}
+      status:
+        type: string
+    type: object
+  response.UserResponseSuccess:
+    properties:
+      data: {}
+      status:
+        type: string
+    type: object
+info:
+  contact:
+    name: Some Dev
+  description: API yang memberikan layanan kepada pengguna untuk membuat playlist
+    dan berkolaborasi
+  title: go_playlist API
+  version: "1.0"
+paths:
+  /auth:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user's info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AuthResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.AuthResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.AuthResponse'
+      summary: User Authentication
+      tags:
+      - auth
+  /collaborations:
+    delete:
+      consumes:
+      - application/json
+      description: Remove user from collaboree
+      parameters:
+      - description: Remove collaboration request json
+        in: body
+        name: Payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateCollborationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CollaborationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CollaborationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.CollaborationResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CollaborationResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.CollaborationResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CollaborationResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Remove collaboree
+      tags:
+      - collaborations
+    post:
+      consumes:
+      - application/json
+      description: Add user to collaboration
+      parameters:
+      - description: Add collaboration request json
+        in: body
+        name: Payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateCollborationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.CollaborationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.CollaborationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.CollaborationResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.CollaborationResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.CollaborationResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create collaboration
+      tags:
+      - collaborations
+  /musics:
+    get:
+      consumes:
+      - application/json
+      description: Retrive all music data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all musics
+      tags:
+      - musics
+    post:
+      consumes:
+      - application/json
+      description: Insert new music
+      parameters:
+      - description: Modify music json format
+        in: body
+        name: Payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateMusicRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create music
+      tags:
+      - musics
+  /musics/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove music by id
+      parameters:
+      - description: Music ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete music
+      tags:
+      - musics
+    get:
+      consumes:
+      - application/json
+      description: Retrive music data by id
+      parameters:
+      - description: Music ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.MusicResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get music
+      tags:
+      - musics
+    put:
+      consumes:
+      - application/json
+      description: Edit music data by id
+      parameters:
+      - description: Modify music json format
+        in: body
+        name: Payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateMusicRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.MusicResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Modify music
+      tags:
+      - musics
+  /playlists:
+    get:
+      consumes:
+      - application/json
+      description: Retrive all playlist data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PlaylistResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all playlist
+      tags:
+      - playlists
+    post:
+      consumes:
+      - application/json
+      description: Make new playlist
+      parameters:
+      - description: Playlist json format
+        in: body
+        name: Payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreatePlaylistRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create playlist
+      tags:
+      - playlists
+  /playlists/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove playlist by id
+      parameters:
+      - description: Playlist ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete playlist
+      tags:
+      - playlists
+    get:
+      consumes:
+      - application/json
+      description: Retrive playlist data by id
+      parameters:
+      - description: Playlist ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PlaylistResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get playlist
+      tags:
+      - playlists
+    put:
+      consumes:
+      - application/json
+      description: Edit playlist data by id
+      parameters:
+      - description: Playlist ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Modify playlist
+      tags:
+      - playlists
+  /playlists/{id}/songs:
+    delete:
+      consumes:
+      - application/json
+      description: Delete playlist's music from playlist
+      parameters:
+      - description: Playlist ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Playlist json format
+        in: body
+        name: Payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreatePlaylistRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Remove playlist's music
+      tags:
+      - playlists
+    get:
+      consumes:
+      - application/json
+      description: Retrive playlist's music data by id
+      parameters:
+      - description: Playlist ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PlaylistResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get playlist's music
+      tags:
+      - playlists
+    post:
+      consumes:
+      - application/json
+      description: Add music to playlist
+      parameters:
+      - description: Playlist ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Playlist json format
+        in: body
+        name: Payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreatePlaylistRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.PlaylistResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Add playlist music
+      tags:
+      - playlists
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Retrive user data by id
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Playlist json format
+        in: body
+        name: Payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.UserResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+      summary: Create new user
+      tags:
+      - users
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrive user data by id
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.UserResponseSuccess'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Retrive user data by id
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Playlist json format
+        in: body
+        name: Payload
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Modify user
+      tags:
+      - users
+swagger: "2.0"

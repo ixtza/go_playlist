@@ -6,13 +6,20 @@ import (
 	"mini-clean/api"
 	"mini-clean/app/modules"
 	"mini-clean/config"
+	_ "mini-clean/docs"
 	"mini-clean/util"
 	"net/http"
 	"os"
 
 	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
+// @title          go_playlist API
+// @version        1.0
+// @description    API yang memberikan layanan kepada pengguna untuk membuat playlist dan berkolaborasi
+// @contact.name   Some Dev
+// @Basepath       /v1
 func main() {
 	config := config.GetConfig()
 
@@ -22,8 +29,13 @@ func main() {
 	controllers := modules.RegisterModules(dbCon, config)
 
 	e := echo.New()
+
+	handlSwag := echoSwagger.WrapHandler
+
+	e.GET("swagger/*", handlSwag)
+
 	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Golang clean architecture")
+		return c.String(http.StatusOK, "go_playlist API")
 	})
 
 	api.RegistrationPath(e, controllers)

@@ -1,0 +1,38 @@
+name: Build Go App
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+
+      - name: Verify module
+        run: go mod verify
+
+      - name: Build go App
+        run: go build -v ./...
+
+      - name: Check go vet linting
+        run: go vet ./...
+
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd app
+            git pull origin main
+            go mod verify
+            docker compose down && docker compose --env-file ./config/app.env up --build -d

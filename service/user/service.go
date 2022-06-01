@@ -1,8 +1,8 @@
 package user
 
 import (
-	"fmt"
 	"mini-clean/entities"
+	goplaylist "mini-clean/error"
 	"mini-clean/service/user/dto"
 
 	"github.com/go-playground/validator/v10"
@@ -12,15 +12,14 @@ type Repository interface {
 	FindById(id uint64) (user *entities.User, err error)
 	FindAll() (users []entities.User, err error)
 	FindByQuery(key string, value interface{}) (user *entities.User, err error)
-	Insert(data entities.User) (err error)
+	Insert(data entities.User) (id uint64, err error)
 	Update(data entities.User) (user *entities.User, err error)
 }
 
 type Service interface {
-	Login(dto dto.UserLoginDTO) (id int)
 	GetById(id uint64) (user *entities.User, err error)
 	GetAll() (users []entities.User, err error)
-	Create(dto dto.UserDTO) (err error)
+	Create(dto dto.UserDTO) (id uint64, err error)
 	Modify(dto dto.UserDTO) (user *entities.User, err error)
 }
 
@@ -36,23 +35,6 @@ func NewService(repository Repository) Service {
 	}
 }
 
-func (s *service) Login(dto dto.UserLoginDTO) (id int) {
-	err := s.validate.Struct(dto)
-	if err != nil {
-		return -1
-	}
-	user := new(entities.User)
-
-	user, err = s.repository.FindByQuery("email", dto.Email)
-	if err != nil {
-		return -2
-	}
-	if user.Password != dto.Password {
-		return -3
-	}
-	return int(user.ID)
-}
-
 func (s *service) GetById(id uint64) (user *entities.User, err error) {
 	result, err := s.repository.FindById(id)
 	return result, err
@@ -66,30 +48,29 @@ func (s *service) GetAll() (users []entities.User, err error) {
 	return users, nil
 }
 
-func (s *service) Create(dto dto.UserDTO) (err error) {
+func (s *service) Create(dto dto.UserDTO) (id uint64, err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
-		return err
+		err = goplaylist.ErrBadRequest
+		return
 	}
 
 	newUser := entities.ObjUser(dto.Name, dto.Email, dto.Password)
 
-	err = s.repository.Insert(*newUser)
-	return err
+	id, err = s.repository.Insert(*newUser)
+	return
 }
 
 func (s *service) Modify(dto dto.UserDTO) (user *entities.User, err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
-		return nil, err
+		return nil, goplaylist.ErrBadRequest
 	}
 
 	user, err = s.repository.FindByQuery("email", dto.Email)
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(user)
 
 	user.Name = dto.Name
 	user.Password = dto.Password

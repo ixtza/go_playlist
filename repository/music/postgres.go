@@ -3,8 +3,10 @@ package music
 import (
 	"fmt"
 	"mini-clean/entities"
+	goplaylist "mini-clean/error"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type PostgresRepository struct {
@@ -33,17 +35,21 @@ func (repo *PostgresRepository) FindById(id uint64) (music *entities.Music, err 
 	}()
 
 	if err = opr.Error; err != nil {
-		return nil, err
+		return nil, goplaylist.ErrInternalServer
 	}
 
-	opr.First(&music, id)
+	err = opr.First(&music, id).Error
+	if err != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
 
 	opr.Commit()
 
 	return
 }
 
-func (repo *PostgresRepository) FindAll() (users []entities.Music, err error) {
+func (repo *PostgresRepository) FindAll() (musics []entities.Music, err error) {
 	opr := repo.db.Begin()
 
 	defer func() {
@@ -53,16 +59,44 @@ func (repo *PostgresRepository) FindAll() (users []entities.Music, err error) {
 	}()
 
 	if err = opr.Error; err != nil {
-		return nil, err
+		return nil, goplaylist.ErrInternalServer
 	}
 
-	opr.Find(&users)
+	err = opr.Find(&musics).Error
+	if err != nil {
+		err = goplaylist.ErrInternalServer
+		return
+	}
 
 	opr.Commit()
 	return
 }
 
-func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (music entities.Music, err error) {
+func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (music *entities.Music, err error) {
+	opr := repo.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			opr.Rollback()
+		}
+	}()
+
+	if err = opr.Error; err != nil {
+		return nil, goplaylist.ErrInternalServer
+	}
+
+	err = opr.First(&music, key+" = ?", value).Error
+	fmt.Println(music, key, value)
+	if err != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
+	opr.Commit()
+
+	return
+}
+
+func (repo *PostgresRepository) Insert(data entities.Music) (id uint64, err error) {
+
 	opr := repo.db.Begin()
 
 	defer func() {
@@ -72,44 +106,22 @@ func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (musi
 	}()
 
 	if err = opr.Error; err != nil {
-		return music, err
+		err = goplaylist.ErrInternalServer
+		return
 	}
 
-	opr.Where(key+" = ?", value).Find(&music)
-
-	opr.Commit()
-
-	return
-}
-
-func (repo *PostgresRepository) Insert(data entities.Music) (err error) {
-
-	opr := repo.db.Begin()
-
-	defer func() {
-		if r := recover(); r != nil {
-			opr.Rollback()
-		}
-	}()
-
-	if err = opr.Error; err != nil {
-		return err
+	err = opr.Create(&data).Error
+	if err != nil {
+		err = goplaylist.ErrInternalServer
+		return
 	}
-
-	opr.Create(&data)
-
 	opr.Commit()
-
+	id = data.ID
 	return
 }
 
 func (repo *PostgresRepository) Update(data entities.Music) (music *entities.Music, err error) {
-	fmt.Println(data)
 	opr := repo.db.Begin()
-
-	if err != nil {
-		return nil, err
-	}
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -118,19 +130,35 @@ func (repo *PostgresRepository) Update(data entities.Music) (music *entities.Mus
 	}()
 
 	if err = opr.Error; err != nil {
-		return nil, err
+		return nil, goplaylist.ErrInternalServer
 	}
 
-	opr.First(&music, data.ID)
+	err = opr.First(&music, data.ID).Error
 
-	opr.Model(&music).Omit("ID").Updates(map[string]interface{}{"title": data.Title})
+	if err != nil {
+		return
+	}
 
+	err = opr.Model(&music).Omit("ID").Updates(map[string]interface{}{"title": data.Title, "musix_id": data.MusixID, "performer": data.Performer, "album_title": data.AlbumTitle}).Error
+	if err != nil {
+		err = goplaylist.ErrInternalServer
+		return
+	}
 	opr.Commit()
 
 	return
 }
 
 func (repo *PostgresRepository) Delete(id uint64) (err error) {
-	err = repo.db.Where("id = ?", id).Delete(&entities.Music{}).Error
+	music, er := repo.FindById(id)
+	if er != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
+	err = repo.db.Select(clause.Associations).Where("id = ?", id).Delete(music).Error
+	if err != nil {
+		err = goplaylist.ErrInternalServer
+		return
+	}
 	return
 }

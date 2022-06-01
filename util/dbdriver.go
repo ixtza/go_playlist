@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"mini-clean/config"
 
 	"gorm.io/driver/postgres"
@@ -38,16 +39,21 @@ func NewConnectionDatabase(config *config.AppConfig) *DatabaseConnection {
 }
 
 func newPostgres(config *config.AppConfig) *gorm.DB {
-	dbURL := config.Database.DBURL
-	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
+	var connectionString string
+	switch config.Database.Driver {
+	case "postgres":
+		connectionString = fmt.Sprintf("%s://%s:%s@%s:%s/%s",
+			config.Database.Driver,
+			config.Database.DB_USER,
+			config.Database.DB_PASSWORD,
+			config.Database.DB_HOST,
+			config.Database.DB_PORT,
+			config.Database.DB_NAME)
+	}
+	db, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-
-	// db.Migrator().DropTable(&entities.User{}, &entities.Music{}, &entities.Playlist{}, &entities.Collaboration{}, &entities.PlaylistMusic{})
-	// db.AutoMigrate(&entities.User{}, &entities.Music{}, &entities.Playlist{})
-	// entities.Collaboration{}.BeforeCreate(db)
-	// entities.PlaylistMusic{}.BeforeCreate(db)
 
 	return db
 }

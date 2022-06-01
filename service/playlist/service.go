@@ -4,14 +4,17 @@ import (
 	"mini-clean/entities"
 	"mini-clean/service/playlist/dto"
 
+	goplaylist "mini-clean/error"
+
 	"github.com/go-playground/validator/v10"
 )
 
 type Repository interface {
+	ExistCollab(userId uint64, playlistId uint64) (playlist *entities.Playlist, err error)
 	FindById(id uint64) (playlist *entities.Playlist, err error)
 	FindAll() (playlists []entities.Playlist, err error)
-	FindByQuery(key string, value interface{}) (playlist entities.Playlist, err error)
-	Insert(data entities.Playlist) (err error)
+	FindByQuery(key string, value interface{}) (playlist []entities.Playlist, err error)
+	Insert(data entities.Playlist) (id uint64, err error)
 	Update(data entities.Playlist) (playlist *entities.Playlist, err error)
 	Delete(id uint64) (err error)
 	AddPlaylistMusic(data entities.PlaylistMusic) (err error)
@@ -20,10 +23,11 @@ type Repository interface {
 }
 
 type Service interface {
-	Ownership(userId uint64, playlistId uint64) (result bool, err error)
+	Ownership(userId uint64, playlistId uint64) (err error)
+	Access(userId uint64, playlistId uint64) (err error)
 	GetById(id uint64) (playlist *entities.Playlist, err error)
 	GetAll() (playlists []entities.Playlist, err error)
-	Create(dto dto.PlaylistDTO) (err error)
+	Create(dto dto.PlaylistDTO) (id uint64, err error)
 	Modify(id uint64, dto dto.PlaylistDTO) (playlist *entities.Playlist, err error)
 	Remove(userId uint64, playlistId uint64) (err error)
 	AddPlaylistMusic(userId uint64, dto dto.PlaylistMusicDTO) (err error)
@@ -43,46 +47,65 @@ func NewService(repository Repository) Service {
 	}
 }
 
-func (s *service) Ownership(userId uint64, playlistId uint64) (result bool, err error) {
-	var playlist *entities.Playlist
-	playlist, err = s.repository.FindById(playlistId)
-	if err != nil {
+func (s *service) Ownership(userId uint64, playlistId uint64) (err error) {
+	data, err := s.repository.FindById(playlistId)
+	if err != nil || data.Owner != userId {
+		err = goplaylist.ErrUnauthorized
 		return
 	}
-	if playlist.Owner == userId {
-		result = true
+	return
+}
+
+func (s *service) Access(userId uint64, playlistId uint64) (err error) {
+	_, err = s.repository.ExistCollab(userId, playlistId)
+	if err != nil {
+		err = goplaylist.ErrUnauthorized
+		return
 	}
 	return
 }
 
 func (s *service) GetById(id uint64) (playlist *entities.Playlist, err error) {
 	playlist, err = s.repository.FindById(id)
+
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 
 func (s *service) GetAll() (playlists []entities.Playlist, err error) {
 	playlists, err = s.repository.FindAll()
+
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 
-func (s *service) Create(dto dto.PlaylistDTO) (err error) {
+func (s *service) Create(dto dto.PlaylistDTO) (id uint64, err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
-		return err
+
+		err = goplaylist.ErrBadRequest
+		return
 	}
 
 	newPlaylist := entities.ObjPlaylist(dto.Name, dto.Owner)
 
-	err = s.repository.Insert(*newPlaylist)
+	id, err = s.repository.Insert(*newPlaylist)
+
 	return
 }
 
 func (s *service) Modify(id uint64, dto dto.PlaylistDTO) (playlist *entities.Playlist, err error) {
 	err = s.validate.Struct(dto)
 	if err != nil {
-		return nil, err
+
+		return nil, goplaylist.ErrBadRequest
 	}
 	playlist, err = s.repository.FindById(id)
+
 	if err != nil {
 		return nil, err
 	}
@@ -91,14 +114,16 @@ func (s *service) Modify(id uint64, dto dto.PlaylistDTO) (playlist *entities.Pla
 
 	playlist, err = s.repository.Update(*playlist)
 	if err != nil {
+
 		return nil, err
 	}
 	return playlist, nil
 }
 
 func (s *service) Remove(userId uint64, playlistId uint64) (err error) {
-	result, err := s.Ownership(userId, playlistId)
-	if err != nil || !result {
+	err = s.Ownership(userId, playlistId)
+
+	if err != nil {
 		return
 	}
 	err = s.repository.Delete(playlistId)
@@ -106,31 +131,62 @@ func (s *service) Remove(userId uint64, playlistId uint64) (err error) {
 }
 
 func (s *service) AddPlaylistMusic(userId uint64, dto dto.PlaylistMusicDTO) (err error) {
-	result, err := s.Ownership(userId, dto.PlaylistID)
-	if err != nil || !result {
+	err = s.validate.Struct(dto)
+	if err != nil {
+
+		return goplaylist.ErrBadRequest
+	}
+	err = s.Access(userId, dto.PlaylistID)
+	if err != nil {
+		err = s.Ownership(userId, dto.PlaylistID)
+
+		if err != nil {
+			return
+		}
+		newPlaylistMusic := entities.ObjPlaylistMusics(dto.MusicID, dto.PlaylistID)
+		err = s.repository.AddPlaylistMusic(*newPlaylistMusic)
+
+		if err != nil {
+			return
+		}
 		return
 	}
 	newPlaylistMusic := entities.ObjPlaylistMusics(dto.MusicID, dto.PlaylistID)
 	err = s.repository.AddPlaylistMusic(*newPlaylistMusic)
-	return
-}
-func (s *service) GetPlaylistMusicById(userId uint64, playlistId uint64) (playlist entities.Playlist, err error) {
-	result, err := s.Ownership(userId, playlistId)
-	if err != nil || !result {
-		return
-	}
-	playlist, err = s.repository.FindPlaylistMusicById(playlistId)
+
 	if err != nil {
 		return
 	}
 	return
 }
+
+func (s *service) GetPlaylistMusicById(userId uint64, playlistId uint64) (playlist entities.Playlist, err error) {
+	playlist, err = s.repository.FindPlaylistMusicById(playlistId)
+
+	if err != nil {
+		return
+	}
+	return
+}
+
 func (s *service) RemovePlaylistMusicById(userId uint64, musicId uint64, playlistId uint64) (err error) {
-	result, err := s.Ownership(userId, playlistId)
-	if err != nil || !result {
+	err = s.Access(userId, playlistId)
+
+	if err != nil {
+		err = s.Ownership(userId, playlistId)
+
+		if err != nil {
+			return
+		}
+		err = s.repository.DeletePlaylistMusicById(musicId, playlistId)
+
+		if err != nil {
+			return
+		}
 		return
 	}
 	err = s.repository.DeletePlaylistMusicById(musicId, playlistId)
+
 	if err != nil {
 		return
 	}

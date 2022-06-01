@@ -1,10 +1,11 @@
 package playlist
 
 import (
-	"fmt"
 	"mini-clean/entities"
+	goplaylist "mini-clean/error"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type PostgresRepository struct {
@@ -15,7 +16,7 @@ func Migrate(db *gorm.DB) {
 	db.AutoMigrate(&entities.Playlist{})
 	err := db.SetupJoinTable(&entities.Playlist{}, "Musics", &entities.PlaylistMusic{})
 	if err != nil {
-		fmt.Println(err)
+
 	}
 	db.AutoMigrate(&entities.PlaylistMusic{})
 }
@@ -25,6 +26,30 @@ func NewPostgresRepository(db *gorm.DB) *PostgresRepository {
 	return &PostgresRepository{
 		db: db,
 	}
+}
+
+func (repo *PostgresRepository) ExistCollab(userId uint64, playlistId uint64) (playlist *entities.Playlist, err error) {
+	opr := repo.db.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			opr.Rollback()
+		}
+	}()
+
+	if err = opr.Error; err != nil {
+		return nil, goplaylist.ErrInternalServer
+	}
+	ent := &entities.Collaboration{}
+	err = opr.Debug().Where("playlist_id = ?", playlistId).First(ent, "user_id = ?", userId).Error
+	if err != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
+
+	opr.Commit()
+
+	return
 }
 
 func (repo *PostgresRepository) FindById(id uint64) (playlist *entities.Playlist, err error) {
@@ -38,10 +63,17 @@ func (repo *PostgresRepository) FindById(id uint64) (playlist *entities.Playlist
 	}()
 
 	if err = opr.Error; err != nil {
-		return nil, err
+		return nil, goplaylist.ErrInternalServer
 	}
 
-	opr.First(&playlist, id)
+	err = opr.Debug().Preload("Users", func(tx *gorm.DB) *gorm.DB {
+		return tx.Select("id", "name", "email")
+	}).Preload("Musics").First(&playlist, id).Error
+
+	if err != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
 
 	opr.Commit()
 
@@ -58,16 +90,20 @@ func (repo *PostgresRepository) FindAll() (playlist []entities.Playlist, err err
 	}()
 
 	if err = opr.Error; err != nil {
-		return nil, err
+		return nil, goplaylist.ErrInternalServer
 	}
 
-	opr.Find(&playlist)
+	err = opr.Find(&playlist).Error
+	if err != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
 
 	opr.Commit()
 	return
 }
 
-func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (playlist entities.Playlist, err error) {
+func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (playlist []entities.Playlist, err error) {
 	opr := repo.db.Begin()
 
 	defer func() {
@@ -77,17 +113,21 @@ func (repo *PostgresRepository) FindByQuery(key string, value interface{}) (play
 	}()
 
 	if err = opr.Error; err != nil {
-		return playlist, err
+		return playlist, goplaylist.ErrInternalServer
 	}
 
-	opr.Where(key+" = ?", value).Find(&playlist)
+	err = opr.Debug().Find(&playlist, key+" = ?", value).Error
+	if err != nil || len(playlist) == 0 {
+		err = goplaylist.ErrNotFound
+		return
+	}
 
 	opr.Commit()
 
 	return
 }
 
-func (repo *PostgresRepository) Insert(data entities.Playlist) (err error) {
+func (repo *PostgresRepository) Insert(data entities.Playlist) (id uint64, err error) {
 
 	opr := repo.db.Begin()
 
@@ -98,11 +138,17 @@ func (repo *PostgresRepository) Insert(data entities.Playlist) (err error) {
 	}()
 
 	if err = opr.Error; err != nil {
-		return err
+		err = goplaylist.ErrInternalServer
+		return
 	}
 
-	opr.Create(&data)
+	err = opr.Create(&data).Error
 
+	if err != nil {
+		err = goplaylist.ErrInternalServer
+		return
+	}
+	id = data.ID
 	opr.Commit()
 
 	return
@@ -112,10 +158,6 @@ func (repo *PostgresRepository) Update(data entities.Playlist) (playlist *entiti
 
 	opr := repo.db.Begin()
 
-	if err != nil {
-		return nil, err
-	}
-
 	defer func() {
 		if r := recover(); r != nil {
 			opr.Rollback()
@@ -123,12 +165,19 @@ func (repo *PostgresRepository) Update(data entities.Playlist) (playlist *entiti
 	}()
 
 	if err = opr.Error; err != nil {
-		return nil, err
+		return nil, goplaylist.ErrInternalServer
 	}
 
 	opr.First(&playlist, data.ID)
-
+	if err != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
 	opr.Model(&playlist).Omit("ID", "email").Updates(map[string]interface{}{"name": data.Name})
+	if err != nil {
+		err = goplaylist.ErrInternalServer
+		return
+	}
 
 	opr.Commit()
 
@@ -136,7 +185,11 @@ func (repo *PostgresRepository) Update(data entities.Playlist) (playlist *entiti
 }
 
 func (repo *PostgresRepository) Delete(id uint64) (err error) {
-	err = repo.db.Where("id = ?", id).Delete(&entities.Playlist{}).Error
+	err = repo.db.Select(clause.Associations).Where("id = ?", id).Delete(&entities.Playlist{ID: id}).Error
+	if err != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
 	return
 }
 
@@ -150,10 +203,15 @@ func (repo *PostgresRepository) AddPlaylistMusic(data entities.PlaylistMusic) (e
 	}()
 
 	if err = opr.Error; err != nil {
-		return err
+		return goplaylist.ErrInternalServer
 	}
 
-	opr.Create(&data)
+	err = opr.Debug().Create(&data).Error
+
+	if err != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
 
 	opr.Commit()
 
@@ -170,10 +228,16 @@ func (repo *PostgresRepository) FindPlaylistMusicById(playlistId uint64) (playli
 	}()
 
 	if err = opr.Error; err != nil {
+		err = goplaylist.ErrInternalServer
 		return
 	}
 
-	opr.First(&playlistMusics, playlistId).Preload("musics")
+	err = opr.Preload("Musics").First(&playlistMusics, playlistId).Error
+
+	if err != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
 
 	opr.Commit()
 
@@ -181,6 +245,10 @@ func (repo *PostgresRepository) FindPlaylistMusicById(playlistId uint64) (playli
 }
 
 func (repo *PostgresRepository) DeletePlaylistMusicById(musicId uint64, playlistId uint64) (err error) {
-	err = repo.db.Where("playlist_id = ?", playlistId).Where("music_id = ?", musicId).Delete(&entities.PlaylistMusic{}).Error
+	err = repo.db.Debug().Where("playlist_id = ?", playlistId).Where("music_id = ?", musicId).Delete(&entities.PlaylistMusic{}).Error
+	if err != nil {
+		err = goplaylist.ErrNotFound
+		return
+	}
 	return
 }

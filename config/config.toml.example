@@ -1,0 +1,15 @@
+[app]
+port = 
+jwtkey = 
+
+[database]
+driver = 
+dbhost =
+dbname =
+dbport = 
+user = 
+password = 
+
+[openapi]
+musixmatch = 
+musixmatchurl = 
